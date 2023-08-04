@@ -211,7 +211,7 @@ class TelegramChatApiLoader(BaseLoader):
         combined_text = ""
 
         # Iterate through sorted parent message IDs
-        for parent_id, message_ids in message_threads.items():
+        for message_ids in message_threads.values():
             # Get the message texts for the message IDs and sort them by date
             message_texts = (
                 data[data["message.id"].isin(message_ids)]

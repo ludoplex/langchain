@@ -84,20 +84,19 @@ class StuffDocumentsChain(BaseCombineDocumentsChain):
         with this variable name.
         """
         llm_chain_variables = values["llm_chain"].prompt.input_variables
-        if "document_variable_name" not in values:
-            if len(llm_chain_variables) == 1:
-                values["document_variable_name"] = llm_chain_variables[0]
-            else:
-                raise ValueError(
-                    "document_variable_name must be provided if there are "
-                    "multiple llm_chain_variables"
-                )
-        else:
+        if "document_variable_name" in values:
             if values["document_variable_name"] not in llm_chain_variables:
                 raise ValueError(
                     f"document_variable_name {values['document_variable_name']} was "
                     f"not found in llm_chain input_variables: {llm_chain_variables}"
                 )
+        elif len(llm_chain_variables) == 1:
+            values["document_variable_name"] = llm_chain_variables[0]
+        else:
+            raise ValueError(
+                "document_variable_name must be provided if there are "
+                "multiple llm_chain_variables"
+            )
         return values
 
     def _get_inputs(self, docs: List[Document], **kwargs: Any) -> dict:

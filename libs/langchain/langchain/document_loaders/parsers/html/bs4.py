@@ -41,11 +41,7 @@ class BS4HTMLParser(BaseBlobParser):
 
         text = soup.get_text(self.get_text_separator)
 
-        if soup.title:
-            title = str(soup.title.string)
-        else:
-            title = ""
-
+        title = str(soup.title.string) if soup.title else ""
         metadata: Dict[str, Union[str, None]] = {
             "source": blob.source,
             "title": title,

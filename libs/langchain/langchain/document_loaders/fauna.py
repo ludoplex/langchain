@@ -52,11 +52,10 @@ class FaunaLoader(BaseLoader):
                 for key, value in document_dict.items():
                     if key == self.page_content_field:
                         page_content = value
-                document: Document = Document(
+                yield Document(
                     page_content=page_content,
                     metadata={"id": result.id, "ts": result.ts},
                 )
-                yield document
         if page.after is not None:
             yield Document(
                 page_content="Next Page Exists",

@@ -24,9 +24,7 @@ class KuzuGraph:
 
     def query(self, query: str, params: dict = {}) -> List[Dict[str, Any]]:
         """Query Kùzu database"""
-        params_list = []
-        for param_name in params:
-            params_list.append([param_name, params[param_name]])
+        params_list = [[param_name, value] for param_name, value in params.items()]
         result = self.conn.execute(query, params_list)
         column_names = result.get_column_names()
         return_list = []
@@ -48,9 +46,9 @@ class KuzuGraph:
                 if properties[property_name]["dimension"] > 0:
                     if "shape" in properties[property_name]:
                         for s in properties[property_name]["shape"]:
-                            list_type_flag += "[%s]" % s
+                            list_type_flag += f"[{s}]"
                     else:
-                        for i in range(properties[property_name]["dimension"]):
+                        for _ in range(properties[property_name]["dimension"]):
                             list_type_flag += "[]"
                 property_type += list_type_flag
                 current_table_schema["properties"].append(
@@ -58,13 +56,11 @@ class KuzuGraph:
                 )
             node_properties.append(current_table_schema)
 
-        relationships = []
         rel_tables = self.conn._get_rel_table_names()
-        for table in rel_tables:
-            relationships.append(
-                "(:%s)-[:%s]->(:%s)" % (table["src"], table["name"], table["dst"])
-            )
-
+        relationships = [
+            f'(:{table["src"]})-[:{table["name"]}]->(:{table["dst"]})'
+            for table in rel_tables
+        ]
         rel_properties = []
         for table in rel_tables:
             current_table_schema = {"properties": [], "label": table["name"]}

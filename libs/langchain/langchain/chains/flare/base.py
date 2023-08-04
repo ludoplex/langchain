@@ -90,7 +90,7 @@ def _low_confidence_spans(
 ) -> List[str]:
     _low_idx = np.where(np.exp(log_probs) < min_prob)[0]
     low_idx = [i for i in _low_idx if re.search(r"\w", tokens[i])]
-    if len(low_idx) == 0:
+    if not low_idx:
         return []
     spans = [[low_idx[0], low_idx[0] + num_pad_tokens + 1]]
     for i, idx in enumerate(low_idx[1:]):
@@ -196,7 +196,7 @@ class FlareChain(Chain):
 
         response = ""
 
-        for i in range(self.max_iter):
+        for _ in range(self.max_iter):
             _run_manager.on_text(
                 f"Current Response: {response}", color="blue", end="\n"
             )
@@ -211,7 +211,7 @@ class FlareChain(Chain):
                 self.min_token_gap,
                 self.num_pad_tokens,
             )
-            initial_response = response.strip() + " " + "".join(tokens)
+            initial_response = f"{response.strip()} " + "".join(tokens)
             if not low_confidence_spans:
                 response = initial_response
                 final_response, finished = self.output_parser.parse(response)
@@ -226,7 +226,7 @@ class FlareChain(Chain):
                 response,
                 initial_response,
             )
-            response = response.strip() + " " + marginal
+            response = f"{response.strip()} {marginal}"
             if finished:
                 break
         return {self.output_keys[0]: response}

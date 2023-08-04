@@ -67,13 +67,9 @@ class LangChainTracer(BaseTracer):
         self.project_name = project_name or os.getenv(
             "LANGCHAIN_PROJECT", os.getenv("LANGCHAIN_SESSION", "default")
         )
-        if use_threading:
-            # set max_workers to 1 to process tasks in order
-            self.executor: Optional[ThreadPoolExecutor] = ThreadPoolExecutor(
-                max_workers=1
-            )
-        else:
-            self.executor = None
+        self.executor = (
+            ThreadPoolExecutor(max_workers=1) if use_threading else None
+        )
         self.client = client or _get_client()
         self._futures: Set[Future] = set()
         self.tags = tags or []
@@ -96,7 +92,7 @@ class LangChainTracer(BaseTracer):
         execution_order = self._get_execution_order(parent_run_id_)
         start_time = datetime.utcnow()
         if metadata:
-            kwargs.update({"metadata": metadata})
+            kwargs["metadata"] = metadata
         chat_model_run = Run(
             id=run_id,
             parent_run_id=parent_run_id,

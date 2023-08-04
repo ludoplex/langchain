@@ -114,20 +114,18 @@ class TrelloLoader(BaseLoader):
         return [self._card_to_doc(card, list_dict) for card in cards]
 
     def _get_board(self) -> Board:
-        # Find the first board with a matching name
-        board = next(
-            (b for b in self.client.list_boards() if b.name == self.board_name), None
-        )
-        if not board:
+        if board := next(
+            (b for b in self.client.list_boards() if b.name == self.board_name),
+            None,
+        ):
+            return board
+        else:
             raise ValueError(f"Board `{self.board_name}` not found.")
-        return board
 
     def _card_to_doc(self, card: Card, list_dict: dict) -> Document:
         from bs4 import BeautifulSoup  # type: ignore
 
-        text_content = ""
-        if self.include_card_name:
-            text_content = card.name + "\n"
+        text_content = card.name + "\n" if self.include_card_name else ""
         if card.description.strip():
             text_content += BeautifulSoup(card.description, "lxml").get_text()
         if self.include_checklist:
@@ -157,8 +155,8 @@ class TrelloLoader(BaseLoader):
         # Extra metadata fields. Card object is not subscriptable.
         if "labels" in self.extra_metadata:
             metadata["labels"] = [label.name for label in card.labels]
-        if "list" in self.extra_metadata:
-            if card.list_id in list_dict:
+        if card.list_id in list_dict:
+            if "list" in self.extra_metadata:
                 metadata["list"] = list_dict[card.list_id]
         if "closed" in self.extra_metadata:
             metadata["closed"] = card.closed

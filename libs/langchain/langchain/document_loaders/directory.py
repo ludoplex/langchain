@@ -18,10 +18,7 @@ logger = logging.getLogger(__name__)
 
 def _is_visible(p: Path) -> bool:
     parts = p.parts
-    for _p in parts:
-        if _p.startswith("."):
-            return False
-    return True
+    return not any(_p.startswith(".") for _p in parts)
 
 
 class DirectoryLoader(BaseLoader):

@@ -75,7 +75,7 @@ class OBSFileLoader(BaseLoader):
             if not endpoint:
                 raise ValueError("Either OBSClient or endpoint must be provided.")
             if not config:
-                config = dict()
+                config = {}
             if config.get("get_token_from_ecs"):
                 client = ObsClient(server=endpoint, security_provider_policy="ECS")
             else:

@@ -111,11 +111,10 @@ class RSSFeedLoader(BaseLoader):
                         f"Error fetching {url}, exception: {feed.bozo_exception}"
                     )
             except Exception as e:
-                if self.continue_on_failure:
-                    logger.error(f"Error fetching {url}, exception: {e}")
-                    continue
-                else:
+                if not self.continue_on_failure:
                     raise e
+                logger.error(f"Error fetching {url}, exception: {e}")
+                continue
             try:
                 for entry in feed.entries:
                     loader = NewsURLLoader(
@@ -126,8 +125,7 @@ class RSSFeedLoader(BaseLoader):
                     article.metadata["feed"] = url
                     yield article
             except Exception as e:
-                if self.continue_on_failure:
-                    logger.error(f"Error processing entry {entry.link}, exception: {e}")
-                    continue
-                else:
+                if not self.continue_on_failure:
                     raise e
+                logger.error(f"Error processing entry {entry.link}, exception: {e}")
+                continue

@@ -58,8 +58,7 @@ def _parse_chat_history(history: List[BaseMessage]) -> _ChatHistory:
             raise ValueError(
                 f"Unexpected message with type {type(message)} at the position {i}."
             )
-    chat_history = _ChatHistory(context=context, history=vertex_messages)
-    return chat_history
+    return _ChatHistory(context=context, history=vertex_messages)
 
 
 def _parse_examples(examples: List[BaseMessage]) -> List["InputOutputTextPair"]:
@@ -147,8 +146,7 @@ class ChatVertexAI(_VertexAICommon, BaseChatModel):
         history = _parse_chat_history(messages[:-1])
         context = history.context if history.context else None
         params = {**self._default_params, **kwargs}
-        examples = kwargs.get("examples", None)
-        if examples:
+        if examples := kwargs.get("examples", None):
             params["examples"] = _parse_examples(examples)
         if not self.is_codey_model:
             chat = self.client.start_chat(

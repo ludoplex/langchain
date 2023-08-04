@@ -88,7 +88,7 @@ class MWDumpLoader(BaseLoader):
                     metadata = {"source": page.title}
                     docs.append(Document(page_content=text, metadata=metadata))
             except Exception as e:
-                logger.error("Parsing error: {}".format(e))
+                logger.error(f"Parsing error: {e}")
                 if self.stop_on_error:
                     raise e
                 else:

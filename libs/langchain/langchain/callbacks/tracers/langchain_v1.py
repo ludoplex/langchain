@@ -120,10 +120,7 @@ class LangChainTracerV1(BaseTracer):
 
     def _persist_run(self, run: Union[Run, LLMRun, ChainRun, ToolRun]) -> None:
         """Persist a run."""
-        if isinstance(run, Run):
-            v1_run = self._convert_to_v1_run(run)
-        else:
-            v1_run = run
+        v1_run = self._convert_to_v1_run(run) if isinstance(run, Run) else run
         if isinstance(v1_run, LLMRun):
             endpoint = f"{self._endpoint}/llm-runs"
         elif isinstance(v1_run, ChainRun):

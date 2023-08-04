@@ -28,14 +28,13 @@ class MRKLOutputParser(AgentOutputParser):
         regex = (
             r"Action\s*\d*\s*:[\s]*(.*?)[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
         )
-        action_match = re.search(regex, text, re.DOTALL)
-        if action_match:
+        if action_match := re.search(regex, text, re.DOTALL):
             if includes_answer:
                 raise OutputParserException(
                     f"{FINAL_ANSWER_AND_PARSABLE_ACTION_ERROR_MESSAGE}: {text}"
                 )
-            action = action_match.group(1).strip()
-            action_input = action_match.group(2)
+            action = action_match[1].strip()
+            action_input = action_match[2]
             tool_input = action_input.strip(" ")
             # ensure if its a well formed SQL query we don't remove any trailing " chars
             if tool_input.startswith("SELECT ") is False:

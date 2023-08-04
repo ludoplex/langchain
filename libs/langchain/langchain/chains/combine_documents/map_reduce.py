@@ -150,38 +150,35 @@ class MapReduceDocumentsChain(BaseCombineDocumentsChain):
     @root_validator(pre=True)
     def get_default_document_variable_name(cls, values: Dict) -> Dict:
         """Get default document variable name, if not provided."""
-        if "document_variable_name" not in values:
-            llm_chain_variables = values["llm_chain"].prompt.input_variables
-            if len(llm_chain_variables) == 1:
-                values["document_variable_name"] = llm_chain_variables[0]
-            else:
-                raise ValueError(
-                    "document_variable_name must be provided if there are "
-                    "multiple llm_chain input_variables"
-                )
-        else:
-            llm_chain_variables = values["llm_chain"].prompt.input_variables
+        llm_chain_variables = values["llm_chain"].prompt.input_variables
+        if "document_variable_name" in values:
             if values["document_variable_name"] not in llm_chain_variables:
                 raise ValueError(
                     f"document_variable_name {values['document_variable_name']} was "
                     f"not found in llm_chain input_variables: {llm_chain_variables}"
                 )
+        elif len(llm_chain_variables) == 1:
+            values["document_variable_name"] = llm_chain_variables[0]
+        else:
+            raise ValueError(
+                "document_variable_name must be provided if there are "
+                "multiple llm_chain input_variables"
+            )
         return values
 
     @property
     def collapse_document_chain(self) -> BaseCombineDocumentsChain:
         """Kept for backward compatibility."""
-        if isinstance(self.reduce_documents_chain, ReduceDocumentsChain):
-            if self.reduce_documents_chain.collapse_documents_chain:
-                return self.reduce_documents_chain.collapse_documents_chain
-            else:
-                return self.reduce_documents_chain.combine_documents_chain
-        else:
+        if not isinstance(self.reduce_documents_chain, ReduceDocumentsChain):
             raise ValueError(
                 f"`reduce_documents_chain` is of type "
                 f"{type(self.reduce_documents_chain)} so it does not have "
                 f"this attribute."
             )
+        if self.reduce_documents_chain.collapse_documents_chain:
+            return self.reduce_documents_chain.collapse_documents_chain
+        else:
+            return self.reduce_documents_chain.combine_documents_chain
 
     @property
     def combine_document_chain(self) -> BaseCombineDocumentsChain:

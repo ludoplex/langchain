@@ -148,9 +148,7 @@ class SelfHostedHuggingFaceInstructEmbeddings(SelfHostedHuggingFaceEmbeddings):
         Returns:
             List of embeddings, one for each text.
         """
-        instruction_pairs = []
-        for text in texts:
-            instruction_pairs.append([self.embed_instruction, text])
+        instruction_pairs = [[self.embed_instruction, text] for text in texts]
         embeddings = self.client(self.pipeline_ref, instruction_pairs)
         return embeddings.tolist()
 

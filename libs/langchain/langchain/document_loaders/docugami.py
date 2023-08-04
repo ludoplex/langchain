@@ -135,11 +135,10 @@ class DocugamiLoader(BaseLoader, BaseModel):
             """Get the leaf structural nodes of a node."""
             if _is_structural(node) and not _has_structural_descendant(node):
                 return [node]
-            else:
-                leaf_nodes = []
-                for child in node:
-                    leaf_nodes.extend(_leaf_structural_nodes(child))
-                return leaf_nodes
+            leaf_nodes = []
+            for child in node:
+                leaf_nodes.extend(_leaf_structural_nodes(child))
+            return leaf_nodes
 
         def _create_doc(node: Any, text: str) -> Document:
             """Create a Document from a node and text."""
@@ -168,7 +167,7 @@ class DocugamiLoader(BaseLoader, BaseModel):
         for node in _leaf_structural_nodes(root):
             text = _get_text(node)
             if prev_small_chunk_text:
-                text = prev_small_chunk_text + " " + text
+                text = f"{prev_small_chunk_text} {text}"
                 prev_small_chunk_text = None
 
             if _is_heading(node) or len(text) < self.min_chunk_size:
@@ -177,9 +176,9 @@ class DocugamiLoader(BaseLoader, BaseModel):
             else:
                 chunks.append(_create_doc(node, text))
 
-        if prev_small_chunk_text and len(chunks) > 0:
+        if prev_small_chunk_text and chunks:
             # small chunk at the end left over, just append to last chunk
-            chunks[-1].page_content += " " + prev_small_chunk_text
+            chunks[-1].page_content += f" {prev_small_chunk_text}"
 
         return chunks
 
@@ -193,15 +192,14 @@ class DocugamiLoader(BaseLoader, BaseModel):
                 url,
                 headers={"Authorization": f"Bearer {self.access_token}"},
             )
-            if response.ok:
-                data = response.json()
-                all_documents.extend(data["documents"])
-                url = data.get("next", None)
-            else:
+            if not response.ok:
                 raise Exception(
                     f"Failed to download {url} (status: {response.status_code})"
                 )
 
+            data = response.json()
+            all_documents.extend(data["documents"])
+            url = data.get("next", None)
         return all_documents
 
     def _project_details_for_docset_id(self, docset_id: str) -> List[Dict]:
@@ -216,15 +214,14 @@ class DocugamiLoader(BaseLoader, BaseModel):
                 headers={"Authorization": f"Bearer {self.access_token}"},
                 data={},
             )
-            if response.ok:
-                data = response.json()
-                all_projects.extend(data["projects"])
-                url = data.get("next", None)
-            else:
+            if not response.ok:
                 raise Exception(
                     f"Failed to download {url} (status: {response.status_code})"
                 )
 
+            data = response.json()
+            all_projects.extend(data["projects"])
+            url = data.get("next", None)
         return all_projects
 
     def _metadata_for_project(self, project: Dict) -> Dict:
@@ -241,15 +238,14 @@ class DocugamiLoader(BaseLoader, BaseModel):
                 headers={"Authorization": f"Bearer {self.access_token}"},
                 data={},
             )
-            if response.ok:
-                data = response.json()
-                all_artifacts.extend(data["artifacts"])
-                url = data.get("next", None)
-            else:
+            if not response.ok:
                 raise Exception(
                     f"Failed to download {url} (status: {response.status_code})"
                 )
 
+            data = response.json()
+            all_artifacts.extend(data["artifacts"])
+            url = data.get("next", None)
         per_file_metadata = {}
         for artifact in all_artifacts:
             artifact_name = artifact.get("name")
@@ -268,31 +264,30 @@ class DocugamiLoader(BaseLoader, BaseModel):
                     data={},
                 )
 
-                if response.ok:
-                    try:
-                        from lxml import etree
-                    except ImportError:
-                        raise ImportError(
-                            "Could not import lxml python package. "
-                            "Please install it with `pip install lxml`."
-                        )
-                    artifact_tree = etree.parse(io.BytesIO(response.content))
-                    artifact_root = artifact_tree.getroot()
-                    ns = artifact_root.nsmap
-                    entries = artifact_root.xpath("//pr:Entry", namespaces=ns)
-                    for entry in entries:
-                        heading = entry.xpath("./pr:Heading", namespaces=ns)[0].text
-                        value = " ".join(
-                            entry.xpath("./pr:Value", namespaces=ns)[0].itertext()
-                        ).strip()
-                        metadata[heading] = value
-                    per_file_metadata[doc_id] = metadata
-                else:
+                if not response.ok:
                     raise Exception(
                         f"Failed to download {artifact_url}/content "
                         + "(status: {response.status_code})"
                     )
 
+                try:
+                    from lxml import etree
+                except ImportError:
+                    raise ImportError(
+                        "Could not import lxml python package. "
+                        "Please install it with `pip install lxml`."
+                    )
+                artifact_tree = etree.parse(io.BytesIO(response.content))
+                artifact_root = artifact_tree.getroot()
+                ns = artifact_root.nsmap
+                entries = artifact_root.xpath("//pr:Entry", namespaces=ns)
+                for entry in entries:
+                    heading = entry.xpath("./pr:Heading", namespaces=ns)[0].text
+                    value = " ".join(
+                        entry.xpath("./pr:Value", namespaces=ns)[0].itertext()
+                    ).strip()
+                    metadata[heading] = value
+                per_file_metadata[doc_id] = metadata
         return per_file_metadata
 
     def _load_chunks_for_document(
@@ -334,7 +329,7 @@ class DocugamiLoader(BaseLoader, BaseModel):
                 # if there are any projects for this docset, load project metadata
                 for project in _project_details:
                     metadata = self._metadata_for_project(project)
-                    combined_project_metadata.update(metadata)
+                    combined_project_metadata |= metadata
 
             for doc in _document_details:
                 doc_metadata = combined_project_metadata.get(doc["id"])

@@ -39,7 +39,7 @@ class NotionDBLoader(BaseLoader):
         self.token = integration_token
         self.database_id = database_id
         self.headers = {
-            "Authorization": "Bearer " + self.token,
+            "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json",
             "Notion-Version": "2022-06-28",
         }
@@ -52,7 +52,7 @@ class NotionDBLoader(BaseLoader):
         """
         page_summaries = self._retrieve_page_summaries()
 
-        return list(self.load_page(page_summary) for page_summary in page_summaries)
+        return [self.load_page(page_summary) for page_summary in page_summaries]
 
     def _retrieve_page_summaries(
         self, query_dict: Dict[str, Any] = {"page_size": 100}
@@ -90,38 +90,38 @@ class NotionDBLoader(BaseLoader):
         for prop_name, prop_data in page_summary["properties"].items():
             prop_type = prop_data["type"]
 
-            if prop_type == "rich_text":
-                value = (
-                    prop_data["rich_text"][0]["plain_text"]
-                    if prop_data["rich_text"]
-                    else None
-                )
-            elif prop_type == "title":
-                value = (
-                    prop_data["title"][0]["plain_text"] if prop_data["title"] else None
-                )
-            elif prop_type == "multi_select":
+            if prop_type == "multi_select":
                 value = (
                     [item["name"] for item in prop_data["multi_select"]]
                     if prop_data["multi_select"]
                     else []
                 )
-            elif prop_type == "url":
-                value = prop_data["url"]
-            elif prop_type == "unique_id":
-                value = (
-                    f'{prop_data["unique_id"]["prefix"]}-{prop_data["unique_id"]["number"]}'
-                    if prop_data["unique_id"]
-                    else None
-                )
-            elif prop_type == "status":
-                value = prop_data["status"]["name"] if prop_data["status"] else None
             elif prop_type == "people":
                 value = (
                     [item["name"] for item in prop_data["people"]]
                     if prop_data["people"]
                     else []
                 )
+            elif prop_type == "rich_text":
+                value = (
+                    prop_data["rich_text"][0]["plain_text"]
+                    if prop_data["rich_text"]
+                    else None
+                )
+            elif prop_type == "status":
+                value = prop_data["status"]["name"] if prop_data["status"] else None
+            elif prop_type == "title":
+                value = (
+                    prop_data["title"][0]["plain_text"] if prop_data["title"] else None
+                )
+            elif prop_type == "unique_id":
+                value = (
+                    f'{prop_data["unique_id"]["prefix"]}-{prop_data["unique_id"]["number"]}'
+                    if prop_data["unique_id"]
+                    else None
+                )
+            elif prop_type == "url":
+                value = prop_data["url"]
             else:
                 value = None
 
@@ -145,14 +145,11 @@ class NotionDBLoader(BaseLoader):
                 if "rich_text" not in result_obj:
                     continue
 
-                cur_result_text_arr: List[str] = []
-
-                for rich_text in result_obj["rich_text"]:
-                    if "text" in rich_text:
-                        cur_result_text_arr.append(
-                            "\t" * num_tabs + rich_text["text"]["content"]
-                        )
-
+                cur_result_text_arr: List[str] = [
+                    "\t" * num_tabs + rich_text["text"]["content"]
+                    for rich_text in result_obj["rich_text"]
+                    if "text" in rich_text
+                ]
                 if result["has_children"]:
                     children_text = self._load_blocks(
                         result["id"], num_tabs=num_tabs + 1

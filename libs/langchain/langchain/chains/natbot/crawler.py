@@ -66,7 +66,7 @@ class Crawler:
         self.client: CDPSession
 
     def go_to_page(self, url: str) -> None:
-        self.page.goto(url=url if "://" in url else "http://" + url)
+        self.page.goto(url=url if "://" in url else f"http://{url}")
         self.client = self.page.context.new_cdp_session(self.page)
         self.page_element_buffer = {}
 
@@ -90,8 +90,7 @@ class Crawler:
 		"""
         self.page.evaluate(js)
 
-        element = self.page_element_buffer.get(int(id))
-        if element:
+        if element := self.page_element_buffer.get(int(id)):
             x: float = element["center_x"]
             y: float = element["center_y"]
 
@@ -172,20 +171,19 @@ class Crawler:
         button_ancestry: Dict[str, Tuple[bool, Optional[int]]] = {"-1": (False, None)}
 
         def convert_name(
-            node_name: Optional[str], has_click_handler: Optional[bool]
-        ) -> str:
+                node_name: Optional[str], has_click_handler: Optional[bool]
+            ) -> str:
             if node_name == "a":
                 return "link"
             if node_name == "input":
                 return "input"
             if node_name == "img":
                 return "img"
-            if (
-                node_name == "button" or has_click_handler
-            ):  # found pages that needed this quirk
-                return "button"
-            else:
-                return "text"
+            return (
+                "button"
+                if (node_name == "button" or has_click_handler)
+                else "text"
+            )
 
         def find_attributes(
             attributes: Dict[int, Any], keys: List[str]
@@ -208,14 +206,14 @@ class Crawler:
             return values
 
         def add_to_hash_tree(
-            hash_tree: Dict[str, Tuple[bool, Optional[int]]],
-            tag: str,
-            node_id: int,
-            node_name: Optional[str],
-            parent_id: int,
-        ) -> Tuple[bool, Optional[int]]:
+                hash_tree: Dict[str, Tuple[bool, Optional[int]]],
+                tag: str,
+                node_id: int,
+                node_name: Optional[str],
+                parent_id: int,
+            ) -> Tuple[bool, Optional[int]]:
             parent_id_str = str(parent_id)
-            if not parent_id_str in hash_tree:
+            if parent_id_str not in hash_tree:
                 parent_name = strings[node_names[parent_id]].lower()
                 grand_parent_id = parent[parent_id]
 
@@ -308,7 +306,7 @@ class Crawler:
 
             if node_name == "#text" and ancestor_exception and ancestor_node:
                 text = strings[node_value[index]]
-                if text == "|" or text == "•":
+                if text in ["|", "•"]:
                     continue
                 ancestor_node.append({"type": "type", "value": text})
             else:
@@ -351,7 +349,7 @@ class Crawler:
                     element_node_value = strings[text_index]
 
             # remove redundant elements
-            if ancestor_exception and (node_name != "a" and node_name != "button"):
+            if ancestor_exception and node_name not in ["a", "button"]:
                 continue
 
             elements_in_view_port.append(

@@ -181,8 +181,9 @@ class LocalAIEmbeddings(BaseModel, Embeddings):
                 )
                 extra[field_name] = values.pop(field_name)
 
-        invalid_model_kwargs = all_required_field_names.intersection(extra.keys())
-        if invalid_model_kwargs:
+        if invalid_model_kwargs := all_required_field_names.intersection(
+            extra.keys()
+        ):
             raise ValueError(
                 f"Parameters {invalid_model_kwargs} should be specified explicitly. "
                 f"Instead they were passed in as part of `model_kwargs` parameter."
@@ -236,7 +237,14 @@ class LocalAIEmbeddings(BaseModel, Embeddings):
 
     @property
     def _invocation_params(self) -> Dict:
-        openai_args = {
+        if self.openai_proxy:
+            import openai
+
+            openai.proxy = {
+                "http": self.openai_proxy,
+                "https": self.openai_proxy,
+            }  # type: ignore[assignment]  # noqa: E501
+        return {
             "model": self.model,
             "request_timeout": self.request_timeout,
             "headers": self.headers,
@@ -246,14 +254,6 @@ class LocalAIEmbeddings(BaseModel, Embeddings):
             "api_version": self.openai_api_version,
             **self.model_kwargs,
         }
-        if self.openai_proxy:
-            import openai
-
-            openai.proxy = {
-                "http": self.openai_proxy,
-                "https": self.openai_proxy,
-            }  # type: ignore[assignment]  # noqa: E501
-        return openai_args
 
     def _embedding_func(self, text: str, *, engine: str) -> List[float]:
         """Call out to LocalAI's embedding endpoint."""
@@ -329,8 +329,7 @@ class LocalAIEmbeddings(BaseModel, Embeddings):
         Returns:
             Embedding for the text.
         """
-        embedding = self._embedding_func(text, engine=self.deployment)
-        return embedding
+        return self._embedding_func(text, engine=self.deployment)
 
     async def aembed_query(self, text: str) -> List[float]:
         """Call out to LocalAI's embedding endpoint async for embedding query text.
@@ -341,5 +340,4 @@ class LocalAIEmbeddings(BaseModel, Embeddings):
         Returns:
             Embedding for the text.
         """
-        embedding = await self._aembedding_func(text, engine=self.deployment)
-        return embedding
+        return await self._aembedding_func(text, engine=self.deployment)

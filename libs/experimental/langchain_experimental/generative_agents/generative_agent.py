@@ -150,11 +150,10 @@ Relevant context:
         if "REACT:" in result:
             reaction = self._clean_response(result.split("REACT:")[-1])
             return False, f"{self.name} {reaction}"
-        if "SAY:" in result:
-            said_value = self._clean_response(result.split("SAY:")[-1])
-            return True, f"{self.name} said {said_value}"
-        else:
+        if "SAY:" not in result:
             return False, result
+        said_value = self._clean_response(result.split("SAY:")[-1])
+        return True, f"{self.name} said {said_value}"
 
     def generate_dialogue_response(
         self, observation: str, now: Optional[datetime] = None
@@ -180,19 +179,18 @@ Relevant context:
                 },
             )
             return False, f"{self.name} said {farewell}"
-        if "SAY:" in result:
-            response_text = self._clean_response(result.split("SAY:")[-1])
-            self.memory.save_context(
-                {},
-                {
-                    self.memory.add_memory_key: f"{self.name} observed "
-                    f"{observation} and said {response_text}",
-                    self.memory.now_key: now,
-                },
-            )
-            return True, f"{self.name} said {response_text}"
-        else:
+        if "SAY:" not in result:
             return False, result
+        response_text = self._clean_response(result.split("SAY:")[-1])
+        self.memory.save_context(
+            {},
+            {
+                self.memory.add_memory_key: f"{self.name} observed "
+                f"{observation} and said {response_text}",
+                self.memory.now_key: now,
+            },
+        )
+        return True, f"{self.name} said {response_text}"
 
     ######################################################
     # Agent stateful' summary methods.                   #

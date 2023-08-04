@@ -28,5 +28,4 @@ class BraveSearchLoader(BaseLoader):
         return brave_client.download_documents(self.query)
 
     def lazy_load(self) -> Iterator[Document]:
-        for doc in self.load():
-            yield doc
+        yield from self.load()

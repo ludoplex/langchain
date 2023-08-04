@@ -128,7 +128,7 @@ class PromptLayerCallbackHandler(BaseCallbackHandler):
                 run_info.get("request_start_time"),
                 run_info.get("request_end_time"),
                 get_api_key(),
-                return_pl_id=bool(self.pl_id_callback is not None),
+                return_pl_id=self.pl_id_callback is not None,
                 metadata={
                     "_langchain_run_id": str(run_id),
                     "_langchain_parent_run_id": str(parent_run_id),

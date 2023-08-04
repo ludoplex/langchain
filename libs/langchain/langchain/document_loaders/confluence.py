@@ -107,10 +107,9 @@ class ConfluenceLoader(BaseLoader):
         confluence_kwargs: Optional[dict] = None,
     ):
         confluence_kwargs = confluence_kwargs or {}
-        errors = ConfluenceLoader.validate_init_args(
+        if errors := ConfluenceLoader.validate_init_args(
             url, api_key, username, oauth2, token
-        )
-        if errors:
+        ):
             raise ValueError(f"Error(s) while validating input: {errors}")
 
         self.base_url = url
@@ -187,9 +186,7 @@ class ConfluenceLoader(BaseLoader):
                 "`username` or `oauth2`"
             )
 
-        if errors:
-            return errors
-        return None
+        return errors if errors else None
 
     def load(
         self,
@@ -336,8 +333,7 @@ class ConfluenceLoader(BaseLoader):
     ) -> List[dict]:
         url = "rest/api/content/search"
 
-        params: Dict[str, Any] = {"cql": cql}
-        params.update(kwargs)
+        params: Dict[str, Any] = {"cql": cql} | kwargs
         if include_archived_spaces is not None:
             params["includeArchivedSpaces"] = include_archived_spaces
 
@@ -380,10 +376,10 @@ class ConfluenceLoader(BaseLoader):
                 ),
                 before_sleep=before_sleep_log(logger, logging.WARNING),
             )(retrieval_method)
-            batch = get_pages(**kwargs, start=len(docs))
-            if not batch:
+            if batch := get_pages(**kwargs, start=len(docs)):
+                docs.extend(batch)
+            else:
                 break
-            docs.extend(batch)
         return docs[:max_pages]
 
     def is_public_page(self, page: dict) -> bool:
@@ -509,11 +505,7 @@ class ConfluenceLoader(BaseLoader):
             title = attachment["title"]
             if media_type == "application/pdf":
                 text = title + self.process_pdf(absolute_url, ocr_languages)
-            elif (
-                media_type == "image/png"
-                or media_type == "image/jpg"
-                or media_type == "image/jpeg"
-            ):
+            elif media_type in ["image/png", "image/jpg", "image/jpeg"]:
                 text = title + self.process_image(absolute_url, ocr_languages)
             elif (
                 media_type == "application/vnd.openxmlformats-officedocument"
@@ -603,14 +595,12 @@ class ConfluenceLoader(BaseLoader):
             )
 
         response = self.confluence.request(path=link, absolute=True)
-        text = ""
-
         if (
             response.status_code != 200
             or response.content == b""
             or response.content is None
         ):
-            return text
+            return ""
         file_data = BytesIO(response.content)
 
         return docx2txt.process(file_data)
@@ -683,15 +673,12 @@ class ConfluenceLoader(BaseLoader):
             )
 
         response = self.confluence.request(path=link, absolute=True)
-        text = ""
-
         if (
             response.status_code != 200
             or response.content == b""
             or response.content is None
         ):
-            return text
-
+            return ""
         drawing = svg2rlg(BytesIO(response.content))
 
         img_data = BytesIO()

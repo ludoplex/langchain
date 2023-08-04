@@ -99,9 +99,7 @@ class EverNoteLoader(BaseLoader):
         resources = []
 
         def add_prefix(element_tag: str) -> str:
-            if prefix is None:
-                return element_tag
-            return f"{prefix}.{element_tag}"
+            return element_tag if prefix is None else f"{prefix}.{element_tag}"
 
         for elem in note:
             if elem.tag == "content":
@@ -110,7 +108,7 @@ class EverNoteLoader(BaseLoader):
                 note_dict["content-raw"] = elem.text
             elif elem.tag == "resource":
                 resources.append(EverNoteLoader._parse_resource(elem))
-            elif elem.tag == "created" or elem.tag == "updated":
+            elif elem.tag in ["created", "updated"]:
                 note_dict[elem.tag] = strptime(elem.text, "%Y%m%dT%H%M%SZ")
             elif elem.tag == "note-attributes":
                 additional_attributes = EverNoteLoader._parse_note(
@@ -120,7 +118,7 @@ class EverNoteLoader(BaseLoader):
             else:
                 note_dict[elem.tag] = elem.text
 
-        if len(resources) > 0:
+        if resources:
             note_dict["resource"] = resources
 
         return {add_prefix(key): value for key, value in note_dict.items()}

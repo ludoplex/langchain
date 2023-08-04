@@ -58,12 +58,13 @@ class NetworkxEntityGraph:
                 "Could not import networkx python package. "
                 "Please install it with `pip install networkx`."
             )
-        if graph is not None:
-            if not isinstance(graph, nx.DiGraph):
-                raise ValueError("Passed in graph is not of correct shape")
-            self._graph = graph
-        else:
+        if graph is None:
             self._graph = nx.DiGraph()
+
+        elif not isinstance(graph, nx.DiGraph):
+            raise ValueError("Passed in graph is not of correct shape")
+        else:
+            self._graph = graph
 
     @classmethod
     def from_gml(cls, gml_path: str) -> NetworkxEntityGraph:
@@ -145,24 +146,23 @@ class NetworkxEntityGraph:
             import pygraphviz  # noqa: F401
 
         except ImportError as e:
-            if e.name == "_graphviz":
-                """
-                >>> e.msg  # pygraphviz throws this error
-                ImportError: libcgraph.so.6: cannot open shared object file
-                """
-                raise ImportError(
-                    "Could not import graphviz debian package. "
-                    "Please install it with:"
-                    "`sudo apt-get update`"
-                    "`sudo apt-get install graphviz graphviz-dev`"
-                )
-            else:
+            if e.name != "_graphviz":
                 raise ImportError(
                     "Could not import pygraphviz python package. "
                     "Please install it with:"
                     "`pip install pygraphviz`."
                 )
 
+            """
+                >>> e.msg  # pygraphviz throws this error
+                ImportError: libcgraph.so.6: cannot open shared object file
+                """
+            raise ImportError(
+                "Could not import graphviz debian package. "
+                "Please install it with:"
+                "`sudo apt-get update`"
+                "`sudo apt-get install graphviz graphviz-dev`"
+            )
         graph = to_agraph(self._graph)  # --> pygraphviz.agraph.AGraph
         # pygraphviz.github.io/documentation/stable/tutorial.html#layout-and-drawing
         graph.layout(prog=kwargs.get("prog", "dot"))

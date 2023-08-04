@@ -187,8 +187,7 @@ class _EmbeddingDistanceChainMixin(Chain):
             float: The computed score.
         """
         metric = self._get_metric(self.distance_metric)
-        score = metric(vectors[0].reshape(1, -1), vectors[1].reshape(1, -1)).item()
-        return score
+        return metric(vectors[0].reshape(1, -1), vectors[1].reshape(1, -1)).item()
 
 
 class EmbeddingDistanceEvalChain(_EmbeddingDistanceChainMixin, StringEvaluator):

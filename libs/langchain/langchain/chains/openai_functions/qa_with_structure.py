@@ -43,7 +43,9 @@ def create_qa_with_structure_chain(
     Returns:
 
     """
-    if output_parser == "pydantic":
+    if output_parser == "base":
+        _output_parser = OutputFunctionsParser()
+    elif output_parser == "pydantic":
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
             raise ValueError(
                 "Must provide a pydantic class for schema when output_parser is "
@@ -52,8 +54,6 @@ def create_qa_with_structure_chain(
         _output_parser: BaseLLMOutputParser = PydanticOutputFunctionsParser(
             pydantic_schema=schema
         )
-    elif output_parser == "base":
-        _output_parser = OutputFunctionsParser()
     else:
         raise ValueError(
             f"Got unexpected output_parser: {output_parser}. "
@@ -83,13 +83,12 @@ def create_qa_with_structure_chain(
     ]
     prompt = prompt or ChatPromptTemplate(messages=messages)
 
-    chain = LLMChain(
+    return LLMChain(
         llm=llm,
         prompt=prompt,
         llm_kwargs=llm_kwargs,
         output_parser=_output_parser,
     )
-    return chain
 
 
 def create_qa_with_sources_chain(llm: BaseLanguageModel, **kwargs: Any) -> LLMChain:

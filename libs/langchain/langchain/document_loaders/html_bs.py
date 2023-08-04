@@ -52,11 +52,7 @@ class BSHTMLLoader(BaseLoader):
 
         text = soup.get_text(self.get_text_separator)
 
-        if soup.title:
-            title = str(soup.title.string)
-        else:
-            title = ""
-
+        title = str(soup.title.string) if soup.title else ""
         metadata: Dict[str, Union[str, None]] = {
             "source": self.file_path,
             "title": title,

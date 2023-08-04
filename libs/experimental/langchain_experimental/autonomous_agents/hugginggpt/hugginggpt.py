@@ -26,7 +26,6 @@ class HuggingGPT:
         plan = self.chat_planner.plan(inputs={"input": input, "hf_tools": self.tools})
         self.task_executor = TaskExecutor(plan)
         self.task_executor.run()
-        response = self.response_generator.generate(
+        return self.response_generator.generate(
             {"task_execution": self.task_executor}
         )
-        return response

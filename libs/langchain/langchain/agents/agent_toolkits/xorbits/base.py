@@ -51,16 +51,16 @@ def create_xorbits_agent(
     if isinstance(data, pd.DataFrame):
         prompt = ZeroShotAgent.create_prompt(
             tools,
-            prefix=PD_PREFIX if prefix == "" else prefix,
-            suffix=PD_SUFFIX if suffix == "" else suffix,
+            prefix=PD_PREFIX if not prefix else prefix,
+            suffix=PD_SUFFIX if not suffix else suffix,
             input_variables=input_variables,
         )
         partial_input = str(data.head())
     else:
         prompt = ZeroShotAgent.create_prompt(
             tools,
-            prefix=NP_PREFIX if prefix == "" else prefix,
-            suffix=NP_SUFFIX if suffix == "" else suffix,
+            prefix=NP_PREFIX if not prefix else prefix,
+            suffix=NP_SUFFIX if not suffix else suffix,
             input_variables=input_variables,
         )
         partial_input = str(data[: len(data) // 2])

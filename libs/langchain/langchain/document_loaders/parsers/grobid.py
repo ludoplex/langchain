@@ -71,7 +71,7 @@ class GrobidParser(BaseBlobParser):
                                 }
                             )
                         chunk_bboxes.append(sbboxes)
-                        if segment_sentences is True:
+                        if segment_sentences:
                             fpage, lpage = sbboxes[0]["page"], sbboxes[-1]["page"]
                             sentence_dict = {
                                 "text": sentence.text,
@@ -82,7 +82,7 @@ class GrobidParser(BaseBlobParser):
                                 "pages": (fpage, lpage),
                             }
                             chunks.append(sentence_dict)
-                    if segment_sentences is not True:
+                    if not segment_sentences:
                         fpage, lpage = (
                             chunk_bboxes[0][0]["page"],
                             chunk_bboxes[-1][-1]["page"],
@@ -109,7 +109,7 @@ class GrobidParser(BaseBlobParser):
                         "section_title": str(chunk["section_title"]),
                         "section_number": str(chunk["section_number"]),
                         "paper_title": str(title),
-                        "file_path": str(file_path),
+                        "file_path": file_path,
                     }
                 ),
             )
@@ -123,9 +123,14 @@ class GrobidParser(BaseBlobParser):
         pdf = open(file_path, "rb")
         files = {"input": (file_path, pdf, "application/pdf", {"Expires": "0"})}
         try:
-            data: Dict[str, Union[str, List[str]]] = {}
-            for param in ["generateIDs", "consolidateHeader", "segmentSentences"]:
-                data[param] = "1"
+            data: Dict[str, Union[str, List[str]]] = {
+                param: "1"
+                for param in [
+                    "generateIDs",
+                    "consolidateHeader",
+                    "segmentSentences",
+                ]
+            }
             data["teiCoordinates"] = ["head", "s"]
             files = files or {}
             r = requests.request(

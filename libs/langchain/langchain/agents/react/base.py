@@ -93,7 +93,7 @@ class DocstoreExplorer:
         else:
             self.lookup_index += 1
         lookups = [p for p in self._paragraphs if self.lookup_str in p.lower()]
-        if len(lookups) == 0:
+        if not lookups:
             return "No Results"
         elif self.lookup_index >= len(lookups):
             return "No More Results"

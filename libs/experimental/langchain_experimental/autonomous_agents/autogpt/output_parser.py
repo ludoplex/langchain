@@ -33,10 +33,9 @@ def preprocess_json_input(input_str: str) -> str:
     Returns:
         Preprocessed string
     """
-    corrected_str = re.sub(
+    return re.sub(
         r'(?<!\\)\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r"\\\\", input_str
     )
-    return corrected_str
 
 
 class AutoGPTOutputParser(BaseAutoGPTOutputParser):

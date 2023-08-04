@@ -102,11 +102,10 @@ class SlackDirectoryLoader(BaseLoader):
         Returns:
             str: The message source.
         """
-        if self.workspace_url:
-            channel_id = self.channel_id_map.get(channel_name, "")
-            return (
-                f"{self.workspace_url}/archives/{channel_id}"
-                + f"/p{timestamp.replace('.', '')}"
-            )
-        else:
+        if not self.workspace_url:
             return f"{channel_name} - {user} - {timestamp}"
+        channel_id = self.channel_id_map.get(channel_name, "")
+        return (
+            f"{self.workspace_url}/archives/{channel_id}"
+            + f"/p{timestamp.replace('.', '')}"
+        )

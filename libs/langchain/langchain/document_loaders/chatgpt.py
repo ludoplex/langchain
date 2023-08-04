@@ -47,16 +47,14 @@ class ChatGPTLoader(BaseLoader):
 
         documents = []
         for d in data:
-            title = d["title"]
             messages = d["mapping"]
+            title = d["title"]
             text = "".join(
                 [
                     concatenate_rows(messages[key]["message"], title)
                     for idx, key in enumerate(messages)
-                    if not (
-                        idx == 0
-                        and messages[key]["message"]["author"]["role"] == "system"
-                    )
+                    if idx != 0
+                    or messages[key]["message"]["author"]["role"] != "system"
                 ]
             )
             metadata = {"source": str(self.log_file)}

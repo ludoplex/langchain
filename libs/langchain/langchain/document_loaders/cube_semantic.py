@@ -79,18 +79,13 @@ class CubeSemanticLoader(BaseLoader):
             if response.status_code == 200:
                 response_data = response.json()
                 if (
-                    "error" in response_data
-                    and response_data["error"] == "Continue wait"
+                    "error" not in response_data
+                    or response_data["error"] != "Continue wait"
                 ):
-                    logger.info("Retrying...")
-                    retries += 1
-                    time.sleep(self.dimension_values_retry_delay)
-                    continue
-                else:
-                    dimension_values = [
-                        item[dimension_name] for item in response_data["data"]
-                    ]
-                    return dimension_values
+                    return [item[dimension_name] for item in response_data["data"]]
+                logger.info("Retrying...")
+                retries += 1
+                time.sleep(self.dimension_values_retry_delay)
             else:
                 logger.error("Request failed with status code:", response.status_code)
                 break

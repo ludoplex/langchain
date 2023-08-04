@@ -86,19 +86,19 @@ class UnstructuredURLLoader(BaseLoader):
 
     def __is_headers_available_for_html(self) -> bool:
         _unstructured_version = self.__version.split("-")[0]
-        unstructured_version = tuple([int(x) for x in _unstructured_version.split(".")])
+        unstructured_version = tuple(int(x) for x in _unstructured_version.split("."))
 
         return unstructured_version >= (0, 5, 7)
 
     def __is_headers_available_for_non_html(self) -> bool:
         _unstructured_version = self.__version.split("-")[0]
-        unstructured_version = tuple([int(x) for x in _unstructured_version.split(".")])
+        unstructured_version = tuple(int(x) for x in _unstructured_version.split("."))
 
         return unstructured_version >= (0, 5, 13)
 
     def __is_non_html_available(self) -> bool:
         _unstructured_version = self.__version.split("-")[0]
-        unstructured_version = tuple([int(x) for x in _unstructured_version.split(".")])
+        unstructured_version = tuple(int(x) for x in _unstructured_version.split("."))
 
         return unstructured_version >= (0, 5, 12)
 
@@ -107,7 +107,7 @@ class UnstructuredURLLoader(BaseLoader):
         from unstructured.partition.auto import partition
         from unstructured.partition.html import partition_html
 
-        docs: List[Document] = list()
+        docs: List[Document] = []
         if self.show_progress_bar:
             try:
                 from tqdm import tqdm
@@ -125,26 +125,27 @@ class UnstructuredURLLoader(BaseLoader):
         for url in urls:
             try:
                 if self.__is_non_html_available():
-                    if self.__is_headers_available_for_non_html():
-                        elements = partition(
-                            url=url, headers=self.headers, **self.unstructured_kwargs
+                    elements = (
+                        partition(
+                            url=url,
+                            headers=self.headers,
+                            **self.unstructured_kwargs
                         )
-                    else:
-                        elements = partition(url=url, **self.unstructured_kwargs)
+                        if self.__is_headers_available_for_non_html()
+                        else partition(url=url, **self.unstructured_kwargs)
+                    )
+                elif self.__is_headers_available_for_html():
+                    elements = partition_html(
+                        url=url, headers=self.headers, **self.unstructured_kwargs
+                    )
                 else:
-                    if self.__is_headers_available_for_html():
-                        elements = partition_html(
-                            url=url, headers=self.headers, **self.unstructured_kwargs
-                        )
-                    else:
-                        elements = partition_html(url=url, **self.unstructured_kwargs)
+                    elements = partition_html(url=url, **self.unstructured_kwargs)
             except Exception as e:
-                if self.continue_on_failure:
-                    logger.error(f"Error fetching or processing {url}, exception: {e}")
-                    continue
-                else:
+                if not self.continue_on_failure:
                     raise e
 
+                logger.error(f"Error fetching or processing {url}, exception: {e}")
+                continue
             if self.mode == "single":
                 text = "\n\n".join([str(el) for el in elements])
                 metadata = {"source": url}

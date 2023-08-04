@@ -44,10 +44,7 @@ class FakeLLM(LLM):
 
         if self.queries is not None:
             return self.queries[prompt]
-        if stop is None:
-            return "foo"
-        else:
-            return "bar"
+        return "foo" if stop is None else "bar"
 
     @property
     def _identifying_params(self) -> Dict[str, Any]:

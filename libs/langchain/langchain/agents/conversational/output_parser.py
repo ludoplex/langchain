@@ -24,8 +24,8 @@ class ConvoOutputParser(AgentOutputParser):
         match = re.search(regex, text)
         if not match:
             raise OutputParserException(f"Could not parse LLM output: `{text}`")
-        action = match.group(1)
-        action_input = match.group(2)
+        action = match[1]
+        action_input = match[2]
         return AgentAction(action.strip(), action_input.strip(" ").strip('"'), text)
 
     @property

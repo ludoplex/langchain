@@ -239,11 +239,7 @@ class AlephAlphaSymmetricSemanticEmbedding(AlephAlphaAsymmetricSemanticEmbedding
         Returns:
             List of embeddings, one for each text.
         """
-        document_embeddings = []
-
-        for text in texts:
-            document_embeddings.append(self._embed(text))
-        return document_embeddings
+        return [self._embed(text) for text in texts]
 
     def embed_query(self, text: str) -> List[float]:
         """Call out to Aleph Alpha's asymmetric, query embedding endpoint

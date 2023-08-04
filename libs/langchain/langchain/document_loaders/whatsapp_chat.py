@@ -51,10 +51,9 @@ class WhatsAppChatLoader(BaseLoader):
         """
         ignore_lines = ["This message was deleted", "<Media omitted>"]
         for line in lines:
-            result = re.match(
+            if result := re.match(
                 message_line_regex, line.strip(), flags=re.VERBOSE | re.IGNORECASE
-            )
-            if result:
+            ):
                 date, sender, text = result.groups()
                 if text not in ignore_lines:
                     text_content += concatenate_rows(date, sender, text)

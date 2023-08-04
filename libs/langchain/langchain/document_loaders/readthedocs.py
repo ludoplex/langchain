@@ -92,9 +92,6 @@ class ReadTheDocsLoader(BaseLoader):
             if text is not None:
                 break
 
-        if text is not None:
-            text = text.get_text()
-        else:
-            text = ""
+        text = text.get_text() if text is not None else ""
         # trim empty lines
         return "\n".join([t for t in text.split("\n") if t])

@@ -24,9 +24,7 @@ from langchain.utils.input import get_colored_text
 def _get_description(o: Any, prefer_short: bool) -> Optional[str]:
     summary = getattr(o, "summary", None)
     description = getattr(o, "description", None)
-    if prefer_short:
-        return summary or description
-    return description or summary
+    return summary or description if prefer_short else description or summary
 
 
 def _format_url(url: str, path_params: dict) -> str:
@@ -38,10 +36,10 @@ def _format_url(url: str, path_params: dict) -> str:
         if isinstance(val, list):
             if param[0] == ".":
                 sep = "." if param[-1] == "*" else ","
-                new_val = "." + sep.join(val)
+                new_val = f".{sep.join(val)}"
             elif param[0] == ";":
                 sep = f"{clean_param}=" if param[-1] == "*" else ","
-                new_val = f"{clean_param}=" + sep.join(val)
+                new_val = f"{clean_param}={sep.join(val)}"
             else:
                 new_val = ",".join(val)
         elif isinstance(val, dict):
@@ -57,13 +55,12 @@ def _format_url(url: str, path_params: dict) -> str:
                 sep = ","
                 new_val = ""
             new_val += sep.join(kv_strs)
+        elif param[0] == ".":
+            new_val = f".{val}"
+        elif param[0] == ";":
+            new_val = f";{clean_param}={val}"
         else:
-            if param[0] == ".":
-                new_val = f".{val}"
-            elif param[0] == ";":
-                new_val = f";{clean_param}={val}"
-            else:
-                new_val = val
+            new_val = val
         new_params[param] = new_val
     return url.format(**new_params)
 
@@ -159,19 +156,19 @@ def openapi_spec_to_openai_fn(
             }
 
     def default_call_api(
-        name: str,
-        fn_args: dict,
-        headers: Optional[dict] = None,
-        params: Optional[dict] = None,
-        **kwargs: Any,
-    ) -> Any:
+            name: str,
+            fn_args: dict,
+            headers: Optional[dict] = None,
+            params: Optional[dict] = None,
+            **kwargs: Any,
+        ) -> Any:
         method = _name_to_call_map[name]["method"]
         url = _name_to_call_map[name]["url"]
         path_params = fn_args.pop("path_params", {})
         url = _format_url(url, path_params)
         if "data" in fn_args and isinstance(fn_args["data"], dict):
             fn_args["data"] = json.dumps(fn_args["data"])
-        _kwargs = {**fn_args, **kwargs}
+        _kwargs = fn_args | kwargs
         if headers is not None:
             if "headers" in _kwargs:
                 _kwargs["headers"].update(headers)
@@ -216,7 +213,7 @@ class SimpleRequestChain(Chain):
         args = inputs[self.input_key].pop("arguments")
         _pretty_name = get_colored_text(name, "green")
         _pretty_args = get_colored_text(json.dumps(args, indent=2), "green")
-        _text = f"Calling endpoint {_pretty_name} with arguments:\n" + _pretty_args
+        _text = f"Calling endpoint {_pretty_name} with arguments:\n{_pretty_args}"
         _run_manager.on_text(_text)
         api_response: Response = self.request_method(name, args)
         if api_response.status_code != 200:
@@ -264,8 +261,8 @@ def get_openapi_chain(
                 break
             except Exception:  # noqa: E722
                 pass
-        if isinstance(spec, str):
-            raise ValueError(f"Unable to parse spec from source {spec}")
+    if isinstance(spec, str):
+        raise ValueError(f"Unable to parse spec from source {spec}")
     openai_fns, call_api_fn = openapi_spec_to_openai_fn(spec)
     llm = llm or ChatOpenAI(
         model="gpt-3.5-turbo-0613",

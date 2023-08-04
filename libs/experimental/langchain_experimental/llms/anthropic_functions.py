@@ -152,18 +152,17 @@ class AnthropicFunctions(BaseChatModel):
                 function_call = kwargs["function_call"]["name"]
                 AIMessage(content=f"<tool>{function_call}</tool>")
                 del kwargs["function_call"]
-        else:
-            if "function_call" in kwargs:
-                raise ValueError(
-                    "if `function_call` provided, `functions` must also be"
-                )
+        elif "function_call" in kwargs:
+            raise ValueError(
+                "if `function_call` provided, `functions` must also be"
+            )
         response = self.model.predict_messages(
             messages, stop=stop, callbacks=run_manager, **kwargs
         )
         completion = response.content
         if forced:
             tag_parser = TagParser()
-            tag_parser.feed(completion.strip() + "</tool_input>")
+            tag_parser.feed(f"{completion.strip()}</tool_input>")
             v1 = tag_parser.parse_data["tool_input"][0]
             kwargs = {
                 "function_call": {
@@ -175,7 +174,7 @@ class AnthropicFunctions(BaseChatModel):
             return ChatResult(generations=[ChatGeneration(message=message)])
         elif "<tool>" in completion:
             tag_parser = TagParser()
-            tag_parser.feed(completion.strip() + "</tool_input>")
+            tag_parser.feed(f"{completion.strip()}</tool_input>")
             msg = completion.split("<tool>")[0]
             v1 = tag_parser.parse_data["tool_input"][0]
             kwargs = {

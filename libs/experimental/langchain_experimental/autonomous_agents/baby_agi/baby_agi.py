@@ -83,7 +83,7 @@ class BabyAGI(Chain, BaseModel):
     ) -> List[Dict]:
         """Prioritize tasks."""
         task_names = [t["task_name"] for t in list(self.task_list)]
-        next_task_id = int(this_task_id) + 1
+        next_task_id = this_task_id + 1
         response = self.task_prioritization_chain.run(
             task_names=", ".join(task_names),
             next_task_id=str(next_task_id),
@@ -107,9 +107,7 @@ class BabyAGI(Chain, BaseModel):
     def _get_top_tasks(self, query: str, k: int) -> List[str]:
         """Get the top k tasks based on the query."""
         results = self.vectorstore.similarity_search(query, k=k)
-        if not results:
-            return []
-        return [str(item.metadata["task"]) for item in results]
+        return [] if not results else [str(item.metadata["task"]) for item in results]
 
     def execute_task(self, objective: str, task: str, k: int = 5, **kwargs: Any) -> str:
         """Execute a task."""

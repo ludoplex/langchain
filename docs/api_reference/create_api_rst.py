@@ -12,18 +12,18 @@ EXP_WRITE_FILE = Path(__file__).parent / "experimental_api_reference.rst"
 
 def load_members(dir: Path) -> dict:
     members: dict = {}
-    for py in glob.glob(str(dir) + "/**/*.py", recursive=True):
+    for py in glob.glob(f"{str(dir)}/**/*.py", recursive=True):
         module = py[len(str(dir)) + 1 :].replace(".py", "").replace("/", ".")
         top_level = module.split(".")[0]
         if top_level not in members:
             members[top_level] = {"classes": [], "functions": []}
         with open(py, "r") as f:
-            for line in f.readlines():
+            for line in f:
                 cls = re.findall(r"^class ([^_].*)\(", line)
-                members[top_level]["classes"].extend([module + "." + c for c in cls])
+                members[top_level]["classes"].extend([f"{module}.{c}" for c in cls])
                 func = re.findall(r"^def ([^_].*)\(", line)
                 afunc = re.findall(r"^async def ([^_].*)\(", line)
-                func_strings = [module + "." + f for f in func + afunc]
+                func_strings = [f"{module}.{f}" for f in func + afunc]
                 members[top_level]["functions"].extend(func_strings)
     return members
 

@@ -35,10 +35,10 @@ def _parse_python_function_docstring(function: Callable) -> Tuple[str, dict]:
     Assumes the function docstring follows Google Python style guide.
     """
     docstring = inspect.getdoc(function)
+    args_block = None
     if docstring:
         docstring_blocks = docstring.split("\n\n")
         descriptors = []
-        args_block = None
         past_descriptors = False
         for block in docstring_blocks:
             if block.startswith("Args:"):
@@ -54,7 +54,6 @@ def _parse_python_function_docstring(function: Callable) -> Tuple[str, dict]:
         description = " ".join(descriptors)
     else:
         description = ""
-        args_block = None
     arg_descriptions = {}
     if args_block:
         arg = None
@@ -63,7 +62,7 @@ def _parse_python_function_docstring(function: Callable) -> Tuple[str, dict]:
                 arg, desc = line.split(":")
                 arg_descriptions[arg.strip()] = desc.strip()
             elif arg:
-                arg_descriptions[arg.strip()] += " " + line.strip()
+                arg_descriptions[arg.strip()] += f" {line.strip()}"
     return description, arg_descriptions
 
 
@@ -154,19 +153,16 @@ def _get_openai_output_parser(
     function_names: Sequence[str],
 ) -> BaseLLMOutputParser:
     """Get the appropriate function output parser given the user functions."""
-    if isinstance(functions[0], type) and issubclass(functions[0], BaseModel):
-        if len(functions) > 1:
-            pydantic_schema: Union[Dict, Type[BaseModel]] = {
-                name: fn for name, fn in zip(function_names, functions)
-            }
-        else:
-            pydantic_schema = functions[0]
-        output_parser: BaseLLMOutputParser = PydanticOutputFunctionsParser(
-            pydantic_schema=pydantic_schema
-        )
-    else:
-        output_parser = JsonOutputFunctionsParser(args_only=len(functions) <= 1)
-    return output_parser
+    if not isinstance(functions[0], type) or not issubclass(
+        functions[0], BaseModel
+    ):
+        return JsonOutputFunctionsParser(args_only=len(functions) <= 1)
+    pydantic_schema = (
+        dict(zip(function_names, functions))
+        if len(functions) > 1
+        else functions[0]
+    )
+    return PydanticOutputFunctionsParser(pydantic_schema=pydantic_schema)
 
 
 def create_openai_fn_chain(
@@ -253,7 +249,7 @@ def create_openai_fn_chain(
     }
     if len(openai_functions) == 1:
         llm_kwargs["function_call"] = {"name": openai_functions[0]["name"]}
-    llm_chain = LLMChain(
+    return LLMChain(
         llm=llm,
         prompt=prompt,
         output_parser=output_parser,
@@ -261,7 +257,6 @@ def create_openai_fn_chain(
         output_key="function",
         **kwargs,
     )
-    return llm_chain
 
 
 def create_structured_output_chain(

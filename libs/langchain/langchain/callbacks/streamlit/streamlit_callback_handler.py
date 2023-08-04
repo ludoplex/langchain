@@ -82,12 +82,11 @@ class LLMThoughtLabeler:
             emoji = EXCEPTION_EMOJI
             name = "Parsing error"
         idx = min([60, len(input)])
-        input = input[0:idx]
+        input = input[:idx]
         if len(tool.input_str) > idx:
-            input = input + "..."
+            input = f"{input}..."
         input = input.replace("\n", " ")
-        label = f"{emoji} **{name}:** {input}"
-        return label
+        return f"{emoji} **{name}:** {input}"
 
     def get_history_label(self) -> str:
         """Return a markdown label for the special 'history' container

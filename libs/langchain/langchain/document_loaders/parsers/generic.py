@@ -62,8 +62,8 @@ class MimeTypeBasedParser(BaseBlobParser):
         if mimetype in self.handlers:
             handler = self.handlers[mimetype]
             yield from handler.lazy_parse(blob)
+        elif self.fallback_parser is None:
+            raise ValueError(f"Unsupported mime type: {mimetype}")
+
         else:
-            if self.fallback_parser is not None:
-                yield from self.fallback_parser.lazy_parse(blob)
-            else:
-                raise ValueError(f"Unsupported mime type: {mimetype}")
+            yield from self.fallback_parser.lazy_parse(blob)

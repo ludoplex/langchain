@@ -245,13 +245,13 @@ class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
     def _get_llm_string(self, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
         if self.lc_serializable:
             params = {**kwargs, **{"stop": stop}}
-            param_string = str(sorted([(k, v) for k, v in params.items()]))
+            param_string = str(sorted(list(params.items())))
             llm_string = dumps(self)
-            return llm_string + "---" + param_string
+            return f"{llm_string}---{param_string}"
         else:
             params = self._get_invocation_params(stop=stop, **kwargs)
             params = {**params, **kwargs}
-            return str(sorted([(k, v) for k, v in params.items()]))
+            return str(sorted(list(params.items())))
 
     def generate(
         self,
@@ -441,15 +441,15 @@ class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
             cache_val = langchain.llm_cache.lookup(prompt, llm_string)
             if isinstance(cache_val, list):
                 return ChatResult(generations=cache_val)
-            else:
-                if new_arg_supported:
-                    result = self._generate(
-                        messages, stop=stop, run_manager=run_manager, **kwargs
-                    )
-                else:
-                    result = self._generate(messages, stop=stop, **kwargs)
-                langchain.llm_cache.update(prompt, llm_string, result.generations)
-                return result
+            result = (
+                self._generate(
+                    messages, stop=stop, run_manager=run_manager, **kwargs
+                )
+                if new_arg_supported
+                else self._generate(messages, stop=stop, **kwargs)
+            )
+            langchain.llm_cache.update(prompt, llm_string, result.generations)
+            return result
 
     async def _agenerate_with_cache(
         self,
@@ -480,15 +480,15 @@ class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
             cache_val = langchain.llm_cache.lookup(prompt, llm_string)
             if isinstance(cache_val, list):
                 return ChatResult(generations=cache_val)
-            else:
-                if new_arg_supported:
-                    result = await self._agenerate(
-                        messages, stop=stop, run_manager=run_manager, **kwargs
-                    )
-                else:
-                    result = await self._agenerate(messages, stop=stop, **kwargs)
-                langchain.llm_cache.update(prompt, llm_string, result.generations)
-                return result
+            result = (
+                await self._agenerate(
+                    messages, stop=stop, run_manager=run_manager, **kwargs
+                )
+                if new_arg_supported
+                else await self._agenerate(messages, stop=stop, **kwargs)
+            )
+            langchain.llm_cache.update(prompt, llm_string, result.generations)
+            return result
 
     @abstractmethod
     def _generate(
@@ -567,10 +567,7 @@ class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
     def predict(
         self, text: str, *, stop: Optional[Sequence[str]] = None, **kwargs: Any
     ) -> str:
-        if stop is None:
-            _stop = None
-        else:
-            _stop = list(stop)
+        _stop = None if stop is None else list(stop)
         result = self([HumanMessage(content=text)], stop=_stop, **kwargs)
         return result.content
 
@@ -581,19 +578,13 @@ class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
         stop: Optional[Sequence[str]] = None,
         **kwargs: Any,
     ) -> BaseMessage:
-        if stop is None:
-            _stop = None
-        else:
-            _stop = list(stop)
+        _stop = None if stop is None else list(stop)
         return self(messages, stop=_stop, **kwargs)
 
     async def apredict(
         self, text: str, *, stop: Optional[Sequence[str]] = None, **kwargs: Any
     ) -> str:
-        if stop is None:
-            _stop = None
-        else:
-            _stop = list(stop)
+        _stop = None if stop is None else list(stop)
         result = await self._call_async(
             [HumanMessage(content=text)], stop=_stop, **kwargs
         )
@@ -606,10 +597,7 @@ class BaseChatModel(BaseLanguageModel[BaseMessageChunk], ABC):
         stop: Optional[Sequence[str]] = None,
         **kwargs: Any,
     ) -> BaseMessage:
-        if stop is None:
-            _stop = None
-        else:
-            _stop = list(stop)
+        _stop = None if stop is None else list(stop)
         return await self._call_async(messages, stop=_stop, **kwargs)
 
     @property

@@ -18,8 +18,7 @@ class RoamLoader(BaseLoader):
         ps = list(Path(self.file_path).glob("**/*.md"))
         docs = []
         for p in ps:
-            with open(p) as f:
-                text = f.read()
+            text = Path(p).read_text()
             metadata = {"source": str(p)}
             docs.append(Document(page_content=text, metadata=metadata))
         return docs

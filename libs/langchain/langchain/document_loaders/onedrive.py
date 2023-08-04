@@ -140,7 +140,7 @@ class OneDriveLoader(BaseLoader, BaseModel):
             return subfolder_drive
 
         subfolders = [f for f in self.folder_path.split("/") if f != ""]
-        if len(subfolders) == 0:
+        if not subfolders:
             return subfolder_drive
 
         items = subfolder_drive.get_items()
@@ -149,7 +149,7 @@ class OneDriveLoader(BaseLoader, BaseModel):
                 subfolder_drive = list(filter(lambda x: subfolder in x.name, items))[0]
                 items = subfolder_drive.get_items()
             except (IndexError, AttributeError):
-                raise FileNotFoundError("Path {} not exist.".format(self.folder_path))
+                raise FileNotFoundError(f"Path {self.folder_path} not exist.")
         return subfolder_drive
 
     def _load_from_folder(self, folder: Type[Folder]) -> List[Document]:
@@ -173,8 +173,8 @@ class OneDriveLoader(BaseLoader, BaseModel):
             file_path = f"{temp_dir}"
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             for file in items:
-                if file.is_file:
-                    if file.mime_type in list(file_mime_types.values()):
+                if file.mime_type in list(file_mime_types.values()):
+                    if file.is_file:
                         loader = OneDriveFileLoader(file=file)
                         docs.extend(loader.load())
         return docs
@@ -208,8 +208,8 @@ class OneDriveLoader(BaseLoader, BaseModel):
                         f"object_id {object_id} in drive {drive}."
                     )
                     continue
-                if file.is_file:
-                    if file.mime_type in list(file_mime_types.values()):
+                if file.mime_type in list(file_mime_types.values()):
+                    if file.is_file:
                         loader = OneDriveFileLoader(file=file)
                         docs.extend(loader.load())
         return docs

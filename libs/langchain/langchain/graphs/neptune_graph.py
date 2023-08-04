@@ -64,8 +64,7 @@ class NeptuneGraph:
         """Query Neptune database."""
         response = requests.post(url=self.query_url, data={"query": query})
         if response.ok:
-            results = json.loads(response.content.decode())
-            return results
+            return json.loads(response.content.decode())
         else:
             raise NeptuneQueryException(
                 {

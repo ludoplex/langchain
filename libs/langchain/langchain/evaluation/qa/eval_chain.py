@@ -16,11 +16,10 @@ from langchain.schema.language_model import BaseLanguageModel
 
 
 def _get_score(verdict: str) -> Optional[int]:
-    match = re.search(r"(?i)(?:grade:\s*)?(correct|incorrect)", verdict)
-    if match:
-        if match.group(1).upper() == "CORRECT":
+    if match := re.search(r"(?i)(?:grade:\s*)?(correct|incorrect)", verdict):
+        if match[1].upper() == "CORRECT":
             return 1
-        elif match.group(1).upper() == "INCORRECT":
+        elif match[1].upper() == "INCORRECT":
             return 0
     return None
 

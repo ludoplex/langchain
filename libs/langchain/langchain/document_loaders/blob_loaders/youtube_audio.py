@@ -30,7 +30,7 @@ class YoutubeAudioLoader(BlobLoader):
         ydl_opts = {
             "format": "m4a/bestaudio/best",
             "noplaylist": True,
-            "outtmpl": self.save_dir + "/%(title)s.%(ext)s",
+            "outtmpl": f"{self.save_dir}/%(title)s.%(ext)s",
             "postprocessors": [
                 {
                     "key": "FFmpegExtractAudio",
@@ -46,5 +46,4 @@ class YoutubeAudioLoader(BlobLoader):
 
         # Yield the written blobs
         loader = FileSystemBlobLoader(self.save_dir, glob="*.m4a")
-        for blob in loader.yield_blobs():
-            yield blob
+        yield from loader.yield_blobs()

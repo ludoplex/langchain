@@ -43,13 +43,10 @@ class Visitor(ABC):
 
 def _to_snake_case(name: str) -> str:
     """Convert a name into snake_case."""
-    snake_case = ""
-    for i, char in enumerate(name):
-        if char.isupper() and i != 0:
-            snake_case += "_" + char.lower()
-        else:
-            snake_case += char.lower()
-    return snake_case
+    return "".join(
+        f"_{char.lower()}" if char.isupper() and i != 0 else char.lower()
+        for i, char in enumerate(name)
+    )
 
 
 class Expr(BaseModel):

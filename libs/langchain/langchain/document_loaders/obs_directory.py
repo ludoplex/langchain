@@ -48,7 +48,7 @@ class OBSDirectoryLoader(BaseLoader):
                 "Please install it with `pip install esdk-obs-python`."
             )
         if not config:
-            config = dict()
+            config = {}
         if config.get("get_token_from_ecs"):
             self.client = ObsClient(server=endpoint, security_provider_policy="ECS")
         else:

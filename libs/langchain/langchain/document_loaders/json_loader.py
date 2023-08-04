@@ -61,8 +61,7 @@ class JSONLoader(BaseLoader):
         if self._json_lines:
             with self.file_path.open(encoding="utf-8") as f:
                 for line in f:
-                    line = line.strip()
-                    if line:
+                    if line := line.strip():
                         self._parse(line, docs)
         else:
             self._parse(self.file_path.read_text(), docs)

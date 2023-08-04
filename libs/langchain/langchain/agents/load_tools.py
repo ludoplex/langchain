@@ -444,8 +444,7 @@ def load_tools(
             if llm is None:
                 raise ValueError(f"Tool {name} requires an LLM to be provided")
             _get_llm_tool_func, extra_keys = _EXTRA_LLM_TOOLS[name]
-            missing_keys = set(extra_keys).difference(kwargs)
-            if missing_keys:
+            if missing_keys := set(extra_keys).difference(kwargs):
                 raise ValueError(
                     f"Tool {name} requires some parameters that were not "
                     f"provided: {missing_keys}"

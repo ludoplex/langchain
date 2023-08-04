@@ -40,8 +40,8 @@ def _get_chat_history(chat_history: List[CHAT_TURN_TYPE]) -> str:
             role_prefix = _ROLE_MAP.get(dialogue_turn.type, f"{dialogue_turn.type}: ")
             buffer += f"\n{role_prefix}{dialogue_turn.content}"
         elif isinstance(dialogue_turn, tuple):
-            human = "Human: " + dialogue_turn[0]
-            ai = "Assistant: " + dialogue_turn[1]
+            human = f"Human: {dialogue_turn[0]}"
+            ai = f"Assistant: {dialogue_turn[1]}"
             buffer += "\n" + "\n".join([human, ai])
         else:
             raise ValueError(
@@ -96,9 +96,9 @@ class BaseConversationalRetrievalChain(Chain):
         """
         _output_keys = [self.output_key]
         if self.return_source_documents:
-            _output_keys = _output_keys + ["source_documents"]
+            _output_keys += ["source_documents"]
         if self.return_generated_question:
-            _output_keys = _output_keys + ["generated_question"]
+            _output_keys += ["generated_question"]
         return _output_keys
 
     @abstractmethod

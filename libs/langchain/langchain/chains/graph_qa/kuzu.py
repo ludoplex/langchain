@@ -39,8 +39,7 @@ class KuzuQAChain(Chain):
 
         :meta private:
         """
-        _output_keys = [self.output_key]
-        return _output_keys
+        return [self.output_key]
 
     @classmethod
     def from_llm(

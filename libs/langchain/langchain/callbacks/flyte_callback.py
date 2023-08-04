@@ -71,8 +71,8 @@ def analyze_text(
             "gulpease_index": textstat.gulpease_index(text),
             "osman": textstat.osman(text),
         }
-        resp.update({"text_complexity_metrics": text_complexity_metrics})
-        resp.update(text_complexity_metrics)
+        resp["text_complexity_metrics"] = text_complexity_metrics
+        resp |= text_complexity_metrics
 
     if nlp is not None:
         spacy = import_spacy()
@@ -87,7 +87,7 @@ def analyze_text(
             "dependency_tree": dep_out,
             "entities": ent_out,
         }
-        resp.update(text_visualizations)
+        resp |= text_visualizations
 
     return resp
 
@@ -151,16 +151,12 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.llm_starts += 1
         self.starts += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_start"})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = {"action": "on_llm_start"}
+        resp |= flatten_dict(serialized)
         resp.update(self.get_custom_callback_meta())
 
-        prompt_responses = []
-        for prompt in prompts:
-            prompt_responses.append(prompt)
-
-        resp.update({"prompts": prompt_responses})
+        prompt_responses = list(prompts)
+        resp["prompts"] = prompt_responses
 
         self.deck.append(self.markdown_renderer().to_html("### LLM Start"))
         self.deck.append(
@@ -176,9 +172,8 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.llm_ends += 1
         self.ends += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_end"})
-        resp.update(flatten_dict(response.llm_output or {}))
+        resp: Dict[str, Any] = {"action": "on_llm_end"}
+        resp |= flatten_dict(response.llm_output or {})
         resp.update(self.get_custom_callback_meta())
 
         self.deck.append(self.markdown_renderer().to_html("### LLM End"))
@@ -236,9 +231,8 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.chain_starts += 1
         self.starts += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_chain_start"})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = {"action": "on_chain_start"}
+        resp |= flatten_dict(serialized)
         resp.update(self.get_custom_callback_meta())
 
         chain_input = ",".join([f"{k}={v}" for k, v in inputs.items()])
@@ -256,10 +250,9 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.chain_ends += 1
         self.ends += 1
 
-        resp: Dict[str, Any] = {}
         chain_output = ",".join([f"{k}={v}" for k, v in outputs.items()])
-        resp.update({"action": "on_chain_end", "outputs": chain_output})
-        resp.update(self.get_custom_callback_meta())
+        resp: Dict[str, Any] = {} | {"action": "on_chain_end", "outputs": chain_output}
+        resp |= self.get_custom_callback_meta()
 
         self.deck.append(self.markdown_renderer().to_html("### Chain End"))
         self.deck.append(
@@ -281,9 +274,10 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.tool_starts += 1
         self.starts += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_tool_start", "input_str": input_str})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = dict(
+            {"action": "on_tool_start", "input_str": input_str}
+        )
+        resp |= flatten_dict(serialized)
         resp.update(self.get_custom_callback_meta())
 
         self.deck.append(self.markdown_renderer().to_html("### Tool Start"))
@@ -297,9 +291,8 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.tool_ends += 1
         self.ends += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_tool_end", "output": output})
-        resp.update(self.get_custom_callback_meta())
+        resp: Dict[str, Any] = dict({"action": "on_tool_end", "output": output})
+        resp |= self.get_custom_callback_meta()
 
         self.deck.append(self.markdown_renderer().to_html("### Tool End"))
         self.deck.append(
@@ -320,9 +313,8 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.step += 1
         self.text_ctr += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_text", "text": text})
-        resp.update(self.get_custom_callback_meta())
+        resp: Dict[str, Any] = dict({"action": "on_text", "text": text})
+        resp |= self.get_custom_callback_meta()
 
         self.deck.append(self.markdown_renderer().to_html("### On Text"))
         self.deck.append(
@@ -335,15 +327,14 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.agent_ends += 1
         self.ends += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update(
+        resp: Dict[str, Any] = dict(
             {
                 "action": "on_agent_finish",
                 "output": finish.return_values["output"],
                 "log": finish.log,
             }
         )
-        resp.update(self.get_custom_callback_meta())
+        resp |= self.get_custom_callback_meta()
 
         self.deck.append(self.markdown_renderer().to_html("### Agent Finish"))
         self.deck.append(
@@ -356,8 +347,7 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.tool_starts += 1
         self.starts += 1
 
-        resp: Dict[str, Any] = {}
-        resp.update(
+        resp: Dict[str, Any] = dict(
             {
                 "action": "on_agent_action",
                 "tool": action.tool,
@@ -365,7 +355,7 @@ class FlyteCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 "log": action.log,
             }
         )
-        resp.update(self.get_custom_callback_meta())
+        resp |= self.get_custom_callback_meta()
 
         self.deck.append(self.markdown_renderer().to_html("### Agent Action"))
         self.deck.append(

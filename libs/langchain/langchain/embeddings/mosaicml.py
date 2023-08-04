@@ -146,8 +146,7 @@ class MosaicMLInstructorEmbeddings(BaseModel, Embeddings):
             List of embeddings, one for each text.
         """
         instruction_pairs = [(self.embed_instruction, text) for text in texts]
-        embeddings = self._embed(instruction_pairs)
-        return embeddings
+        return self._embed(instruction_pairs)
 
     def embed_query(self, text: str) -> List[float]:
         """Embed a query using a MosaicML deployed instructor embedding model.
@@ -159,5 +158,4 @@ class MosaicMLInstructorEmbeddings(BaseModel, Embeddings):
             Embeddings for the text.
         """
         instruction_pair = (self.query_instruction, text)
-        embedding = self._embed([instruction_pair])[0]
-        return embedding
+        return self._embed([instruction_pair])[0]

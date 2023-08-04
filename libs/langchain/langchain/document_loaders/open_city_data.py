@@ -32,9 +32,7 @@ class OpenCityDataLoader(BaseLoader):
         for record in results:
             yield Document(
                 page_content=str(record),
-                metadata={
-                    "source": self.city_id + "_" + self.dataset_id,
-                },
+                metadata={"source": f"{self.city_id}_{self.dataset_id}"},
             )
 
     def load(self) -> List[Document]:

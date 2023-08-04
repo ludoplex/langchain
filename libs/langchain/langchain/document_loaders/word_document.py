@@ -26,21 +26,20 @@ class Docx2txtLoader(BaseLoader, ABC):
             self.file_path = os.path.expanduser(self.file_path)
 
         # If the file is a web path, download it to a temporary file, and use that
-        if not os.path.isfile(self.file_path) and self._is_valid_url(self.file_path):
+        if not os.path.isfile(self.file_path):
+            if not self._is_valid_url(self.file_path):
+                raise ValueError(f"File path {self.file_path} is not a valid file or url")
             r = requests.get(self.file_path)
 
             if r.status_code != 200:
                 raise ValueError(
-                    "Check the url of your file; returned status code %s"
-                    % r.status_code
+                    f"Check the url of your file; returned status code {r.status_code}"
                 )
 
             self.web_path = self.file_path
             self.temp_file = tempfile.NamedTemporaryFile()
             self.temp_file.write(r.content)
             self.file_path = self.temp_file.name
-        elif not os.path.isfile(self.file_path):
-            raise ValueError("File path %s is not a valid file or url" % self.file_path)
 
     def __del__(self) -> None:
         if hasattr(self, "temp_file"):
@@ -93,7 +92,7 @@ class UnstructuredWordDocumentLoader(UnstructuredFileLoader):
         from unstructured.file_utils.filetype import FileType, detect_filetype
 
         unstructured_version = tuple(
-            [int(x) for x in __unstructured_version__.split(".")]
+            int(x) for x in __unstructured_version__.split(".")
         )
         # NOTE(MthwRobinson) - magic will raise an import error if the libmagic
         # system dependency isn't installed. If it's not installed, we'll just

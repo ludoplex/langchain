@@ -25,20 +25,20 @@ class StructuredChatOutputParser(AgentOutputParser):
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
         try:
             action_match = re.search(r"```(.*?)```?", text, re.DOTALL)
-            if action_match is not None:
-                response = json.loads(action_match.group(1).strip(), strict=False)
-                if isinstance(response, list):
-                    # gpt turbo frequently ignores the directive to emit a single action
-                    logger.warning("Got multiple action responses: %s", response)
-                    response = response[0]
-                if response["action"] == "Final Answer":
-                    return AgentFinish({"output": response["action_input"]}, text)
-                else:
-                    return AgentAction(
-                        response["action"], response.get("action_input", {}), text
-                    )
-            else:
+            if action_match is None:
                 return AgentFinish({"output": text}, text)
+            response = json.loads(action_match[1].strip(), strict=False)
+            if isinstance(response, list):
+                # gpt turbo frequently ignores the directive to emit a single action
+                logger.warning("Got multiple action responses: %s", response)
+                response = response[0]
+            return (
+                AgentFinish({"output": response["action_input"]}, text)
+                if response["action"] == "Final Answer"
+                else AgentAction(
+                    response["action"], response.get("action_input", {}), text
+                )
+            )
         except Exception as e:
             raise OutputParserException(f"Could not parse LLM output: {text}") from e
 
@@ -60,13 +60,11 @@ class StructuredChatOutputParserWithRetries(AgentOutputParser):
 
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
         try:
-            if self.output_fixing_parser is not None:
-                parsed_obj: Union[
-                    AgentAction, AgentFinish
-                ] = self.output_fixing_parser.parse(text)
-            else:
-                parsed_obj = self.base_parser.parse(text)
-            return parsed_obj
+            return (
+                self.output_fixing_parser.parse(text)
+                if self.output_fixing_parser is not None
+                else self.base_parser.parse(text)
+            )
         except Exception as e:
             raise OutputParserException(f"Could not parse LLM output: {text}") from e
 
