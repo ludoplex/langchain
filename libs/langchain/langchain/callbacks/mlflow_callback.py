@@ -67,8 +67,8 @@ def analyze_text(
         "gulpease_index": textstat.gulpease_index(text),
         "osman": textstat.osman(text),
     }
-    resp.update({"text_complexity_metrics": text_complexity_metrics})
-    resp.update(text_complexity_metrics)
+    resp["text_complexity_metrics"] = text_complexity_metrics
+    resp |= text_complexity_metrics
 
     if nlp is not None:
         doc = nlp(text)
@@ -86,7 +86,7 @@ def analyze_text(
             "entities": ent_out,
         }
 
-        resp.update(text_visualizations)
+        resp |= text_visualizations
 
     return resp
 
@@ -315,9 +315,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         llm_starts = self.metrics["llm_starts"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_start"})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = {"action": "on_llm_start"}
+        resp |= flatten_dict(serialized)
         resp.update(self.metrics)
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
@@ -336,9 +335,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         llm_streams = self.metrics["llm_streams"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_new_token", "token": token})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = dict({"action": "on_llm_new_token", "token": token})
+        resp |= self.metrics
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
 
@@ -354,9 +352,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         llm_ends = self.metrics["llm_ends"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_end"})
-        resp.update(flatten_dict(response.llm_output or {}))
+        resp: Dict[str, Any] = {"action": "on_llm_end"}
+        resp |= flatten_dict(response.llm_output or {})
         resp.update(self.metrics)
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
@@ -381,8 +378,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 self.mlflg.jsonf(resp, f"llm_end_{llm_ends}_generation_{idx}")
                 dependency_tree = generation_resp["dependency_tree"]
                 entities = generation_resp["entities"]
-                self.mlflg.html(dependency_tree, "dep-" + hash_string(generation.text))
-                self.mlflg.html(entities, "ent-" + hash_string(generation.text))
+                self.mlflg.html(dependency_tree, f"dep-{hash_string(generation.text)}")
+                self.mlflg.html(entities, f"ent-{hash_string(generation.text)}")
 
     def on_llm_error(
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
@@ -401,9 +398,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         chain_starts = self.metrics["chain_starts"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_chain_start"})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = {"action": "on_chain_start"}
+        resp |= flatten_dict(serialized)
         resp.update(self.metrics)
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
@@ -423,10 +419,9 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         chain_ends = self.metrics["chain_ends"]
 
-        resp: Dict[str, Any] = {}
         chain_output = ",".join([f"{k}={v}" for k, v in outputs.items()])
-        resp.update({"action": "on_chain_end", "outputs": chain_output})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = {} | {"action": "on_chain_end", "outputs": chain_output}
+        resp |= self.metrics
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
 
@@ -451,9 +446,10 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         tool_starts = self.metrics["tool_starts"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_tool_start", "input_str": input_str})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = dict(
+            {"action": "on_tool_start", "input_str": input_str}
+        )
+        resp |= flatten_dict(serialized)
         resp.update(self.metrics)
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
@@ -470,9 +466,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         tool_ends = self.metrics["tool_ends"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_tool_end", "output": output})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = dict({"action": "on_tool_end", "output": output})
+        resp |= self.metrics
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
 
@@ -496,9 +491,8 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
 
         text_ctr = self.metrics["text_ctr"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_text", "text": text})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = dict({"action": "on_text", "text": text})
+        resp |= self.metrics
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
 
@@ -513,15 +507,14 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.metrics["ends"] += 1
 
         agent_ends = self.metrics["agent_ends"]
-        resp: Dict[str, Any] = {}
-        resp.update(
+        resp: Dict[str, Any] = dict(
             {
                 "action": "on_agent_finish",
                 "output": finish.return_values["output"],
                 "log": finish.log,
             }
         )
-        resp.update(self.metrics)
+        resp |= self.metrics
 
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
 
@@ -536,8 +529,7 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         self.metrics["starts"] += 1
 
         tool_starts = self.metrics["tool_starts"]
-        resp: Dict[str, Any] = {}
-        resp.update(
+        resp: Dict[str, Any] = dict(
             {
                 "action": "on_agent_action",
                 "tool": action.tool,
@@ -545,7 +537,7 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 "log": action.log,
             }
         )
-        resp.update(self.metrics)
+        resp |= self.metrics
         self.mlflg.metrics(self.metrics, step=self.metrics["step"])
         self.records["on_agent_action_records"].append(resp)
         self.records["action_records"].append(resp)
@@ -645,18 +637,12 @@ class MlflowCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                     try:
                         langchain_asset.save_agent(langchain_asset_path)
                         self.mlflg.artifact(langchain_asset_path)
-                    except AttributeError:
+                    except (AttributeError, NotImplementedError):
                         print("Could not save model.")
                         traceback.print_exc()
-                        pass
-                    except NotImplementedError:
-                        print("Could not save model.")
-                        traceback.print_exc()
-                        pass
                 except NotImplementedError:
                     print("Could not save model.")
                     traceback.print_exc()
-                    pass
         if finish:
             self.mlflg.finish_run()
             self._reset()

@@ -89,9 +89,7 @@ class EmbaasEmbeddings(BaseModel, Embeddings):
         response.raise_for_status()
 
         parsed_response = response.json()
-        embeddings = [item["embedding"] for item in parsed_response["data"]]
-
-        return embeddings
+        return [item["embedding"] for item in parsed_response["data"]]
 
     def _generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Generate embeddings using the Embaas API."""

@@ -72,7 +72,7 @@ def _create_function_message(
         try:
             content = json.dumps(observation, ensure_ascii=False)
         except Exception:
-            content = str(observation)
+            content = observation
     else:
         content = observation
     return FunctionMessage(
@@ -104,9 +104,7 @@ def _parse_ai_message(message: BaseMessage) -> Union[List[AgentAction], AgentFin
     if not isinstance(message, AIMessage):
         raise TypeError(f"Expected an AI message got {type(message)}")
 
-    function_call = message.additional_kwargs.get("function_call", {})
-
-    if function_call:
+    if function_call := message.additional_kwargs.get("function_call", {}):
         try:
             tools = json.loads(function_call["arguments"])["actions"]
         except JSONDecodeError:
@@ -125,11 +123,7 @@ def _parse_ai_message(message: BaseMessage) -> Union[List[AgentAction], AgentFin
             # schema and expect a single string argument as an input.
             # We unpack the argument here if it exists.
             # Open AI does not support passing in a JSON array as an argument.
-            if "__arg1" in _tool_input:
-                tool_input = _tool_input["__arg1"]
-            else:
-                tool_input = _tool_input
-
+            tool_input = _tool_input["__arg1"] if "__arg1" in _tool_input else _tool_input
             content_msg = "responded: {content}\n" if message.content else "\n"
             log = f"\nInvoking: `{function_name}` with `{tool_input}`\n{content_msg}\n"
             _tool = _FunctionsAgentAction(
@@ -270,8 +264,7 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
         predicted_message = self.llm.predict_messages(
             messages, functions=self.functions, callbacks=callbacks
         )
-        agent_decision = _parse_ai_message(predicted_message)
-        return agent_decision
+        return _parse_ai_message(predicted_message)
 
     async def aplan(
         self,
@@ -299,8 +292,7 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
         predicted_message = await self.llm.apredict_messages(
             messages, functions=self.functions, callbacks=callbacks
         )
-        agent_decision = _parse_ai_message(predicted_message)
-        return agent_decision
+        return _parse_ai_message(predicted_message)
 
     @classmethod
     def create_prompt(
@@ -323,11 +315,7 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
         """
         _prompts = extra_prompt_messages or []
         messages: List[Union[BaseMessagePromptTemplate, BaseMessage]]
-        if system_message:
-            messages = [system_message]
-        else:
-            messages = []
-
+        messages = [system_message] if system_message else []
         messages.extend(
             [
                 *_prompts,

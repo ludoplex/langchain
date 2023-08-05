@@ -132,13 +132,13 @@ class ArangoGraphQAChain(Chain):
         aql_result = None
         aql_generation_attempt = 1
 
+        #####################
+        # Extract AQL Query #
+        pattern = r"```(?i:aql)?(.*?)```"
         while (
             aql_result is None
             and aql_generation_attempt < self.max_aql_generation_attempts + 1
         ):
-            #####################
-            # Extract AQL Query #
-            pattern = r"```(?i:aql)?(.*?)```"
             matches = re.findall(pattern, aql_generation_output, re.DOTALL)
             if not matches:
                 _run_manager.on_text(

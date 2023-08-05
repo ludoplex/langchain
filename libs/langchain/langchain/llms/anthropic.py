@@ -196,13 +196,12 @@ class Anthropic(LLM, _AnthropicCommon):
 
         """
         if self.streaming:
-            completion = ""
-            for chunk in self._stream(
-                prompt=prompt, stop=stop, run_manager=run_manager, **kwargs
-            ):
-                completion += chunk.text
-            return completion
-
+            return "".join(
+                chunk.text
+                for chunk in self._stream(
+                    prompt=prompt, stop=stop, run_manager=run_manager, **kwargs
+                )
+            )
         stop = self._get_anthropic_stop(stop)
         params = {**self._default_params, **kwargs}
         response = self.client.completions.create(

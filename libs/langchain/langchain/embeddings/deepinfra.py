@@ -89,8 +89,7 @@ class DeepInfraEmbeddings(BaseModel, Embeddings):
 
         if res.status_code != 200:
             raise ValueError(
-                "Error raised by inference API HTTP code: %s, %s"
-                % (res.status_code, res.text)
+                f"Error raised by inference API HTTP code: {res.status_code}, {res.text}"
             )
         try:
             t = res.json()
@@ -112,8 +111,7 @@ class DeepInfraEmbeddings(BaseModel, Embeddings):
             List of embeddings, one for each text.
         """
         instruction_pairs = [f"{self.query_instruction}{text}" for text in texts]
-        embeddings = self._embed(instruction_pairs)
-        return embeddings
+        return self._embed(instruction_pairs)
 
     def embed_query(self, text: str) -> List[float]:
         """Embed a query using a Deep Infra deployed embedding model.
@@ -125,5 +123,4 @@ class DeepInfraEmbeddings(BaseModel, Embeddings):
             Embeddings for the text.
         """
         instruction_pair = f"{self.query_instruction}{text}"
-        embedding = self._embed([instruction_pair])[0]
-        return embedding
+        return self._embed([instruction_pair])[0]

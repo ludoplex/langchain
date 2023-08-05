@@ -46,7 +46,7 @@ class SequentialChain(Chain):
         """Validate that the correct inputs exist for all chains."""
         chains = values["chains"]
         input_variables = values["input_variables"]
-        memory_keys = list()
+        memory_keys = []
         if "memory" in values and values["memory"] is not None:
             """Validate that prompt input variables are consistent."""
             memory_keys = values["memory"].memory_variables
@@ -70,8 +70,7 @@ class SequentialChain(Chain):
                     f"Missing required input keys: {missing_vars}, "
                     f"only had {known_variables}"
                 )
-            overlapping_keys = known_variables.intersection(chain.output_keys)
-            if overlapping_keys:
+            if overlapping_keys := known_variables.intersection(chain.output_keys):
                 raise ValueError(
                     f"Chain returned keys that already exist: {overlapping_keys}"
                 )
@@ -79,17 +78,18 @@ class SequentialChain(Chain):
             known_variables |= set(chain.output_keys)
 
         if "output_variables" not in values:
-            if values.get("return_all", False):
-                output_keys = known_variables.difference(input_variables)
-            else:
-                output_keys = chains[-1].output_keys
+            output_keys = (
+                known_variables.difference(input_variables)
+                if values.get("return_all", False)
+                else chains[-1].output_keys
+            )
             values["output_variables"] = output_keys
-        else:
-            missing_vars = set(values["output_variables"]).difference(known_variables)
-            if missing_vars:
-                raise ValueError(
-                    f"Expected output variables that were not found: {missing_vars}."
-                )
+        elif missing_vars := set(values["output_variables"]).difference(
+            known_variables
+        ):
+            raise ValueError(
+                f"Expected output variables that were not found: {missing_vars}."
+            )
 
         return values
 
@@ -100,10 +100,10 @@ class SequentialChain(Chain):
     ) -> Dict[str, str]:
         known_values = inputs.copy()
         _run_manager = run_manager or CallbackManagerForChainRun.get_noop_manager()
-        for i, chain in enumerate(self.chains):
+        for chain in self.chains:
             callbacks = _run_manager.get_child()
             outputs = chain(known_values, return_only_outputs=True, callbacks=callbacks)
-            known_values.update(outputs)
+            known_values |= outputs
         return {k: known_values[k] for k in self.output_variables}
 
     async def _acall(
@@ -114,11 +114,11 @@ class SequentialChain(Chain):
         known_values = inputs.copy()
         _run_manager = run_manager or AsyncCallbackManagerForChainRun.get_noop_manager()
         callbacks = _run_manager.get_child()
-        for i, chain in enumerate(self.chains):
+        for chain in self.chains:
             outputs = await chain.acall(
                 known_values, return_only_outputs=True, callbacks=callbacks
             )
-            known_values.update(outputs)
+            known_values |= outputs
         return {k: known_values[k] for k in self.output_variables}
 
 

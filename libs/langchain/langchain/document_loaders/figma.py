@@ -24,11 +24,7 @@ class FigmaFileLoader(BaseLoader):
         self.key = key
 
     def _construct_figma_api_url(self) -> str:
-        api_url = "https://api.figma.com/v1/files/%s/nodes?ids=%s" % (
-            self.key,
-            self.ids,
-        )
-        return api_url
+        return f"https://api.figma.com/v1/files/{self.key}/nodes?ids={self.ids}"
 
     def _get_figma_file(self) -> Any:
         """Get Figma file from Figma REST API."""
@@ -37,8 +33,7 @@ class FigmaFileLoader(BaseLoader):
             self._construct_figma_api_url(), headers=headers
         )
         with urllib.request.urlopen(request) as response:
-            json_data = json.loads(response.read().decode())
-            return json_data
+            return json.loads(response.read().decode())
 
     def load(self) -> List[Document]:
         """Load file"""

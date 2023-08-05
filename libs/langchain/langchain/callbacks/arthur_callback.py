@@ -64,7 +64,7 @@ class ArthurCallbackHandler(BaseCallbackHandler):
         self.arthur_model = arthur_model
         # save the attributes of this model to be used when preparing
         # inferences to log to Arthur in on_llm_end()
-        self.attr_names = set([a.name for a in self.arthur_model.get_attributes()])
+        self.attr_names = {a.name for a in self.arthur_model.get_attributes()}
         self.input_attr = [
             x
             for x in self.arthur_model.get_attributes()
@@ -78,16 +78,11 @@ class ArthurCallbackHandler(BaseCallbackHandler):
             and x.value_type == ValueType.Unstructured_Text
         ][0].name
         self.token_likelihood_attr = None
-        if (
-            len(
-                [
-                    x
-                    for x in self.arthur_model.get_attributes()
-                    if x.value_type == ValueType.TokenLikelihoods
-                ]
-            )
-            > 0
-        ):
+        if [
+            x
+            for x in self.arthur_model.get_attributes()
+            if x.value_type == ValueType.TokenLikelihoods
+        ]:
             self.token_likelihood_attr = [
                 x
                 for x in self.arthur_model.get_attributes()
@@ -133,13 +128,12 @@ class ArthurCallbackHandler(BaseCallbackHandler):
                     " or set an ARTHUR_API_KEY as an environment variable."
                 )
             arthur = ArthurAI(url=arthur_url, access_key=arthur_api_key)
+        elif arthur_password is None:
+            arthur = ArthurAI(url=arthur_url, login=arthur_login)
         else:
-            if arthur_password is None:
-                arthur = ArthurAI(url=arthur_url, login=arthur_login)
-            else:
-                arthur = ArthurAI(
-                    url=arthur_url, login=arthur_login, password=arthur_password
-                )
+            arthur = ArthurAI(
+                url=arthur_url, login=arthur_login, password=arthur_password
+            )
         # get model from Arthur by the provided model ID
         try:
             arthur_model = arthur.get_model(model_id)

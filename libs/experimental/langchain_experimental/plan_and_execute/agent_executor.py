@@ -52,7 +52,7 @@ class PlanAndExecute(Chain):
                 "current_step": step,
                 "objective": inputs[self.input_key],
             }
-            new_inputs = {**_new_inputs, **inputs}
+            new_inputs = _new_inputs | inputs
             response = self.executor.step(
                 new_inputs,
                 callbacks=run_manager.get_child() if run_manager else None,
@@ -84,7 +84,7 @@ class PlanAndExecute(Chain):
                 "current_step": step,
                 "objective": inputs[self.input_key],
             }
-            new_inputs = {**_new_inputs, **inputs}
+            new_inputs = _new_inputs | inputs
             response = await self.executor.astep(
                 new_inputs,
                 callbacks=run_manager.get_child() if run_manager else None,

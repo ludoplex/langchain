@@ -171,8 +171,7 @@ class SQLAlchemyCache(BaseCache):
             .order_by(self.cache_schema.idx)
         )
         with Session(self.engine) as session:
-            rows = session.execute(stmt).fetchall()
-            if rows:
+            if rows := session.execute(stmt).fetchall():
                 try:
                     return [loads(row[0]) for row in rows]
                 except Exception:
@@ -238,11 +237,8 @@ class RedisCache(BaseCache):
     def lookup(self, prompt: str, llm_string: str) -> Optional[RETURN_VAL_TYPE]:
         """Look up based on prompt and llm_string."""
         generations = []
-        # Read from a Redis HASH
-        results = self.redis.hgetall(self._key(prompt, llm_string))
-        if results:
-            for _, text in results.items():
-                generations.append(Generation(text=text))
+        if results := self.redis.hgetall(self._key(prompt, llm_string)):
+            generations.extend(Generation(text=text) for _, text in results.items())
         return generations if generations else None
 
     def update(self, prompt: str, llm_string: str, return_val: RETURN_VAL_TYPE) -> None:
@@ -352,16 +348,16 @@ class RedisSemanticCache(BaseCache):
         """Look up based on prompt and llm_string."""
         llm_cache = self._get_llm_cache(llm_string)
         generations = []
-        # Read from a Hash
-        results = llm_cache.similarity_search_limit_score(
+        if results := llm_cache.similarity_search_limit_score(
             query=prompt,
             k=1,
             score_threshold=self.score_threshold,
-        )
-        if results:
+        ):
             for document in results:
-                for text in document.metadata["return_val"]:
-                    generations.append(Generation(text=text))
+                generations.extend(
+                    Generation(text=text)
+                    for text in document.metadata["return_val"]
+                )
         return generations if generations else None
 
     def update(self, prompt: str, llm_string: str, return_val: RETURN_VAL_TYPE) -> None:
@@ -479,8 +475,7 @@ class GPTCache(BaseCache):
 
         _gptcache = self._get_gptcache(llm_string)
 
-        res = get(prompt, cache_obj=_gptcache)
-        if res:
+        if res := get(prompt, cache_obj=_gptcache):
             return [
                 Generation(**generation_dict) for generation_dict in json.loads(res)
             ]
@@ -525,8 +520,9 @@ def _ensure_cache_exists(cache_client: momento.CacheClient, cache_name: str) -> 
     from momento.responses import CreateCache
 
     create_cache_response = cache_client.create_cache(cache_name)
-    if isinstance(create_cache_response, CreateCache.Success) or isinstance(
-        create_cache_response, CreateCache.CacheAlreadyExists
+    if isinstance(
+        create_cache_response,
+        (CreateCache.Success, CreateCache.CacheAlreadyExists),
     ):
         return None
     elif isinstance(create_cache_response, CreateCache.Error):

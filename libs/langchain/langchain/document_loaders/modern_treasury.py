@@ -65,9 +65,7 @@ class ModernTreasuryLoader(BaseLoader):
 
     def _get_resource(self) -> List[Document]:
         endpoint = MODERN_TREASURY_ENDPOINTS.get(self.resource)
-        if endpoint is None:
-            return []
-        return self._make_request(endpoint)
+        return [] if endpoint is None else self._make_request(endpoint)
 
     def load(self) -> List[Document]:
         return self._get_resource()

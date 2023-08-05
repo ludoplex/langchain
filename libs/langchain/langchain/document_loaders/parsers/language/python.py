@@ -25,13 +25,13 @@ class PythonSegmenter(CodeSegmenter):
 
     def extract_functions_classes(self) -> List[str]:
         tree = ast.parse(self.code)
-        functions_classes = []
-
-        for node in ast.iter_child_nodes(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                functions_classes.append(self._extract_code(node))
-
-        return functions_classes
+        return [
+            self._extract_code(node)
+            for node in ast.iter_child_nodes(tree)
+            if isinstance(
+                node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+            )
+        ]
 
     def simplify_code(self) -> str:
         tree = ast.parse(self.code)

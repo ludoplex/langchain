@@ -87,7 +87,7 @@ class OutlookMessageLoader(BaseLoader):
         self.file_path = file_path
 
         if not os.path.isfile(self.file_path):
-            raise ValueError("File path %s is not a valid file" % self.file_path)
+            raise ValueError(f"File path {self.file_path} is not a valid file")
 
         try:
             import extract_msg  # noqa:F401

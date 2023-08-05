@@ -37,7 +37,7 @@ class AviaryBackend:
 def get_models() -> List[str]:
     """List available models"""
     backend = AviaryBackend.from_env()
-    request_url = backend.backend_url + "-/routes"
+    request_url = f"{backend.backend_url}-/routes"
     response = requests.get(request_url, headers=backend.header, timeout=TIMEOUT)
     try:
         result = response.json()

@@ -142,9 +142,10 @@ class ChatAnthropic(BaseChatModel, _AnthropicCommon):
         **kwargs: Any,
     ) -> ChatResult:
         if self.streaming:
-            completion = ""
-            for chunk in self._stream(messages, stop, run_manager, **kwargs):
-                completion += chunk.text
+            completion = "".join(
+                chunk.text
+                for chunk in self._stream(messages, stop, run_manager, **kwargs)
+            )
         else:
             prompt = self._convert_messages_to_prompt(messages)
             params: Dict[str, Any] = {

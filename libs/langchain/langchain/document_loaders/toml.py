@@ -38,10 +38,9 @@ class TomlLoader(BaseLoader):
                 content = file.read()
                 try:
                     data = tomli.loads(content)
-                    doc = Document(
+                    yield Document(
                         page_content=json.dumps(data),
                         metadata={"source": str(file_path)},
                     )
-                    yield doc
                 except tomli.TOMLDecodeError as e:
                     print(f"Error parsing TOML file {file_path}: {e}")

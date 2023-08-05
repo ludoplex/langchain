@@ -179,7 +179,7 @@ class SagemakerEndpointEmbeddings(BaseModel, Embeddings):
             List of embeddings, one for each text.
         """
         results = []
-        _chunk_size = len(texts) if chunk_size > len(texts) else chunk_size
+        _chunk_size = min(chunk_size, len(texts))
         for i in range(0, len(texts), _chunk_size):
             response = self._embedding_func(texts[i : i + _chunk_size])
             results.extend(response)

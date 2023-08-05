@@ -44,8 +44,7 @@ class BashOutputParser(BaseOutputParser):
         # Bash markdown code blocks
         pattern = re.compile(r"```bash(.*?)(?:\n\s*)```", re.DOTALL)
         for match in pattern.finditer(t):
-            matched = match.group(1).strip()
-            if matched:
+            if matched := match.group(1).strip():
                 code_blocks.extend(
                     [line for line in matched.split("\n") if line.strip()]
                 )

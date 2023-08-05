@@ -41,22 +41,18 @@ class IFixitLoader(BaseLoader):
         """Teardowns are just guides by a different name"""
         self.page_type = pieces[0] if pieces[0] != "Teardown" else "Guide"
 
-        if self.page_type == "Guide" or self.page_type == "Answers":
-            self.id = pieces[2]
-        else:
-            self.id = pieces[1]
-
+        self.id = pieces[2] if self.page_type in ["Guide", "Answers"] else pieces[1]
         self.web_path = web_path
 
     def load(self) -> List[Document]:
         if self.page_type == "Device":
             return self.load_device()
-        elif self.page_type == "Guide" or self.page_type == "Teardown":
+        elif self.page_type in ["Guide", "Teardown"]:
             return self.load_guide()
         elif self.page_type == "Answers":
             return self.load_questions_and_answers()
         else:
-            raise ValueError("Unknown page type: " + self.page_type)
+            raise ValueError(f"Unknown page type: {self.page_type}")
 
     @staticmethod
     def load_suggestions(query: str = "", doc_type: str = "all") -> List[Document]:
@@ -70,13 +66,11 @@ class IFixitLoader(BaseLoader):
         Returns:
 
         """
-        res = requests.get(
-            IFIXIT_BASE_URL + "/suggest/" + query + "?doctypes=" + doc_type
-        )
+        res = requests.get(f"{IFIXIT_BASE_URL}/suggest/{query}?doctypes={doc_type}")
 
         if res.status_code != 200:
             raise ValueError(
-                'Could not load suggestions for "' + query + '"\n' + res.json()
+                f'Could not load suggestions for "{query}' + '"\n' + res.json()
             )
 
         data = res.json()
@@ -110,15 +104,13 @@ class IFixitLoader(BaseLoader):
         loader = WebBaseLoader(self.web_path if url_override is None else url_override)
         soup = loader.scrape()
 
-        output = []
-
         title = soup.find("h1", "post-title").text
 
-        output.append("# " + title)
-        output.append(soup.select_one(".post-content .post-text").text.strip())
-
-        answersHeader = soup.find("div", "post-answers-header")
-        if answersHeader:
+        output = [
+            f"# {title}",
+            soup.select_one(".post-content .post-text").text.strip(),
+        ]
+        if answersHeader := soup.find("div", "post-answers-header"):
             output.append("\n## " + answersHeader.text.strip())
 
         for answer in soup.select(".js-answers-list .post.post-answer"):
@@ -153,9 +145,8 @@ class IFixitLoader(BaseLoader):
         Returns:
 
         """
-        documents = []
         if url_override is None:
-            url = IFIXIT_BASE_URL + "/wikis/CATEGORY/" + self.id
+            url = f"{IFIXIT_BASE_URL}/wikis/CATEGORY/{self.id}"
         else:
             url = url_override
 
@@ -170,14 +161,11 @@ class IFixitLoader(BaseLoader):
         ).strip()
 
         metadata = {"source": self.web_path, "title": data["title"]}
-        documents.append(Document(page_content=text, metadata=metadata))
-
+        documents = [Document(page_content=text, metadata=metadata)]
         if include_guides:
             """Load and return documents for each guide linked to from the device"""
             guide_urls = [guide["url"] for guide in data["guides"]]
-            for guide_url in guide_urls:
-                documents.append(IFixitLoader(guide_url).load()[0])
-
+            documents.extend(IFixitLoader(guide_url).load()[0] for guide_url in guide_urls)
         return documents
 
     def load_guide(self, url_override: Optional[str] = None) -> List[Document]:
@@ -190,48 +178,45 @@ class IFixitLoader(BaseLoader):
 
         """
         if url_override is None:
-            url = IFIXIT_BASE_URL + "/guides/" + self.id
+            url = f"{IFIXIT_BASE_URL}/guides/{self.id}"
         else:
             url = url_override
 
         res = requests.get(url)
 
         if res.status_code != 200:
-            raise ValueError(
-                "Could not load guide: " + self.web_path + "\n" + res.json()
-            )
+            raise ValueError(f"Could not load guide: {self.web_path}" + "\n" + res.json())
 
         data = res.json()
 
-        doc_parts = ["# " + data["title"], data["introduction_raw"]]
+        doc_parts = [
+            "# " + data["title"],
+            data["introduction_raw"],
+            "\n\n###Tools Required:",
+        ]
 
-        doc_parts.append("\n\n###Tools Required:")
         if len(data["tools"]) == 0:
             doc_parts.append("\n - None")
         else:
-            for tool in data["tools"]:
-                doc_parts.append("\n - " + tool["text"])
-
+            doc_parts.extend("\n - " + tool["text"] for tool in data["tools"])
         doc_parts.append("\n\n###Parts Required:")
         if len(data["parts"]) == 0:
             doc_parts.append("\n - None")
         else:
-            for part in data["parts"]:
-                doc_parts.append("\n - " + part["text"])
-
+            doc_parts.extend("\n - " + part["text"] for part in data["parts"])
         for row in data["steps"]:
             doc_parts.append(
-                "\n\n## "
-                + (
-                    row["title"]
-                    if row["title"] != ""
-                    else "Step {}".format(row["orderby"])
+                (
+                    "\n\n## "
+                    + (
+                        row["title"]
+                        if row["title"] != ""
+                        else f'Step {row["orderby"]}'
+                    )
                 )
             )
 
-            for line in row["lines"]:
-                doc_parts.append(line["text_raw"])
-
+            doc_parts.extend(line["text_raw"] for line in row["lines"])
         doc_parts.append(data["conclusion_raw"])
 
         text = "\n".join(doc_parts)

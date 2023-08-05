@@ -177,8 +177,7 @@ class GitHubIssuesLoader(BaseGitHubLoader):
         query_params_list = [
             f"{k}={v}" for k, v in query_params_dict.items() if v is not None
         ]
-        query_params = "&".join(query_params_list)
-        return query_params
+        return "&".join(query_params_list)
 
     @property
     def url(self) -> str:

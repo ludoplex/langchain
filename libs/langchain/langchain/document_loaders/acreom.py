@@ -32,12 +32,11 @@ class AcreomLoader(BaseLoader):
         if match:
             lines = match.group(1).split("\n")
             for line in lines:
-                if ":" in line:
-                    key, value = line.split(":", 1)
-                    front_matter[key.strip()] = value.strip()
-                else:
+                if ":" not in line:
                     # Skip lines without a colon
                     continue
+                key, value = line.split(":", 1)
+                front_matter[key.strip()] = value.strip()
         return front_matter
 
     def _remove_front_matter(self, content: str) -> str:

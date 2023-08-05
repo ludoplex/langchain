@@ -29,7 +29,7 @@ class Task:
             # ndarray to video
             product = np.array(self.product)
             nframe, height, width, _ = product.shape
-            video_filename = uuid.uuid4().hex[:6] + ".mp4"
+            video_filename = f"{uuid.uuid4().hex[:6]}.mp4"
             fps = 30  # Frames per second
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore
             video_out = cv2.VideoWriter(video_filename, fourcc, fps, (width, height))
@@ -39,7 +39,7 @@ class Task:
             self.result = video_filename
         elif self.task == "image_generator":
             # PIL.Image to image
-            filename = uuid.uuid4().hex[:6] + ".png"
+            filename = f"{uuid.uuid4().hex[:6]}.png"
             self.product.save(filename)  # type: ignore
             self.result = filename
 

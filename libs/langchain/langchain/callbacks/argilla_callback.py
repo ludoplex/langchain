@@ -241,15 +241,15 @@ class ArgillaCallbackHandler(BaseCallbackHandler):
         log the outputs to Argilla, and pop the run from `self.prompts`. The behavior
         differs if the output is a list or not.
         """
-        if not any(
-            key in self.prompts
+        if all(
+            key not in self.prompts
             for key in [str(kwargs["parent_run_id"]), str(kwargs["run_id"])]
         ):
             return
         prompts = self.prompts.get(str(kwargs["parent_run_id"])) or self.prompts.get(
             str(kwargs["run_id"])
         )
-        for chain_output_key, chain_output_val in outputs.items():
+        for chain_output_val in outputs.values():
             if isinstance(chain_output_val, list):
                 # Creates the records and adds them to the `FeedbackDataset`
                 self.dataset.add_records(

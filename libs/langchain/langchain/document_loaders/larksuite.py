@@ -27,8 +27,7 @@ class LarkSuiteDocLoader(BaseLoader):
         headers = {"Authorization": f"Bearer {self.access_token}"}
         request = urllib.request.Request(api_url, headers=headers)
         with urllib.request.urlopen(request) as response:
-            json_data = json.loads(response.read().decode())
-            return json_data
+            return json.loads(response.read().decode())
 
     def lazy_load(self) -> Iterator[Document]:
         """Lazy load LarkSuite (FeiShu) document."""

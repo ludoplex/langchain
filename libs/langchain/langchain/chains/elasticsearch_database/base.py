@@ -106,7 +106,7 @@ class ElasticsearchDatabaseChain(Chain):
                 mappings[k]["mappings"] = str(v) + "\n\n/*\n" + "\n".join(hits) + "\n*/"
         return "\n\n".join(
             [
-                "Mapping for index {}:\n{}".format(index, mappings[index]["mappings"])
+                f'Mapping for index {index}:\n{mappings[index]["mappings"]}'
                 for index in mappings
             ]
         )

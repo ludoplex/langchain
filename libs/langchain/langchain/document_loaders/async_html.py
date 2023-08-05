@@ -90,12 +90,11 @@ class AsyncHtmlLoader(BaseLoader):
                 except aiohttp.ClientConnectionError as e:
                     if i == retries - 1:
                         raise
-                    else:
-                        logger.warning(
-                            f"Error fetching {url} with attempt "
-                            f"{i + 1}/{retries}: {e}. Retrying..."
-                        )
-                        await asyncio.sleep(cooldown * backoff**i)
+                    logger.warning(
+                        f"Error fetching {url} with attempt "
+                        f"{i + 1}/{retries}: {e}. Retrying..."
+                    )
+                    await asyncio.sleep(cooldown * backoff**i)
         raise ValueError("retry count exceeded")
 
     async def _fetch_with_rate_limit(
@@ -123,8 +122,7 @@ class AsyncHtmlLoader(BaseLoader):
 
     def lazy_load(self) -> Iterator[Document]:
         """Lazy load text from the url(s) in web_path."""
-        for doc in self.load():
-            yield doc
+        yield from self.load()
 
     def load(self) -> List[Document]:
         """Load text from the url(s) in web_path."""

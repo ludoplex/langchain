@@ -34,7 +34,7 @@ class UnstructuredPowerPointLoader(UnstructuredFileLoader):
         from unstructured.file_utils.filetype import FileType, detect_filetype
 
         unstructured_version = tuple(
-            [int(x) for x in __unstructured_version__.split(".")]
+            int(x) for x in __unstructured_version__.split(".")
         )
         # NOTE(MthwRobinson) - magic will raise an import error if the libmagic
         # system dependency isn't installed. If it's not installed, we'll just

@@ -132,18 +132,17 @@ class NebulaGraph:
             )
 
         except RuntimeError as e:
-            if retry < RETRY_TIMES:
-                retry += 1
-                logging.warning(
-                    f"Error executing query to NebulaGraph. "
-                    f"Retrying ({retry}/{RETRY_TIMES})...\n"
-                    f"query: {query} \n"
-                    f"Error: {e}"
-                )
-                return self.execute(query, params, retry)
-            else:
+            if retry >= RETRY_TIMES:
                 raise ValueError(f"Error executing query to NebulaGraph. Error: {e}")
 
+            retry += 1
+            logging.warning(
+                f"Error executing query to NebulaGraph. "
+                f"Retrying ({retry}/{RETRY_TIMES})...\n"
+                f"query: {query} \n"
+                f"Error: {e}"
+            )
+            return self.execute(query, params, retry)
         except (TTransportException, IOErrorException):
             # connection issue, try to recreate session pool
             if retry < RETRY_TIMES:

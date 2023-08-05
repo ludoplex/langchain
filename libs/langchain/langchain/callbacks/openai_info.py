@@ -71,7 +71,7 @@ def standardize_model_name(
     elif is_completion and (
         model_name.startswith("gpt-4") or model_name.startswith("gpt-3.5")
     ):
-        return model_name + "-completion"
+        return f"{model_name}-completion"
     else:
         return model_name
 

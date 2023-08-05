@@ -124,18 +124,18 @@ class ContextCallbackHandler(BaseCallbackHandler):
         if llm_model is not None:
             self.metadata["llm_model"] = llm_model
 
-        if len(messages) == 0:
+        if not messages:
             return
 
         for message in messages[0]:
             role = self.message_role_model.SYSTEM
-            if message.type == "human":
+            if message.type == "ai":
+                role = self.message_role_model.ASSISTANT
+
+            elif message.type == "human":
                 role = self.message_role_model.USER
             elif message.type == "system":
                 role = self.message_role_model.SYSTEM
-            elif message.type == "ai":
-                role = self.message_role_model.ASSISTANT
-
             self.messages.append(
                 self.message_model(
                     message=message.content,

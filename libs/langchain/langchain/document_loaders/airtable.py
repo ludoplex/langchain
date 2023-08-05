@@ -28,7 +28,7 @@ class AirtableLoader(BaseLoader):
             yield Document(
                 page_content=str(record),
                 metadata={
-                    "source": self.base_id + "_" + self.table_id,
+                    "source": f"{self.base_id}_{self.table_id}",
                     "base_id": self.base_id,
                     "table_id": self.table_id,
                 },

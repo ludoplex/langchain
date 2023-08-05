@@ -68,8 +68,7 @@ class _BaseStoryElementChain(Chain):
 
         :meta private:
         """
-        _output_keys = [self.output_key]
-        return _output_keys
+        return [self.output_key]
 
     @classmethod
     def from_univariate_prompt(
@@ -239,18 +238,17 @@ class CPALChain(_BaseStoryElementChain):
                     f"{story.query.dict()}"
                 )
             )
-        else:
-            query_result = float(story.query._result_table.values[0][-1])
-            if False:
-                """TODO: add this back in when demanded by composable chains"""
-                reporting_chain = self.chain
-                human_report = reporting_chain.run(
-                    question=story.query.question, query_result=query_result
-                )
-                query_result = {
-                    "query_result": query_result,
-                    "human_report": human_report,
-                }
+        query_result = float(story.query._result_table.values[0][-1])
+        if False:
+            """TODO: add this back in when demanded by composable chains"""
+            reporting_chain = self.chain
+            human_report = reporting_chain.run(
+                question=story.query.question, query_result=query_result
+            )
+            query_result = {
+                "query_result": query_result,
+                "human_report": human_report,
+            }
         output = {
             Constant.chain_data.value: story,
             self.output_key: query_result,

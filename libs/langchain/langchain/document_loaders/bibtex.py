@@ -92,8 +92,7 @@ class BibtexLoader(BaseLoader):
         if self.max_docs:
             entries = entries[: self.max_docs]
         for entry in entries:
-            doc = self._load_entry(entry)
-            if doc:
+            if doc := self._load_entry(entry):
                 yield doc
 
     def load(self) -> List[Document]:

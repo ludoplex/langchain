@@ -126,9 +126,7 @@ class LLMChain(Chain):
         run_manager: Optional[CallbackManagerForChainRun] = None,
     ) -> Tuple[List[PromptValue], Optional[List[str]]]:
         """Prepare prompts from inputs."""
-        stop = None
-        if "stop" in input_list[0]:
-            stop = input_list[0]["stop"]
+        stop = input_list[0]["stop"] if "stop" in input_list[0] else None
         prompts = []
         for inputs in input_list:
             selected_inputs = {k: inputs[k] for k in self.prompt.input_variables}
@@ -150,9 +148,7 @@ class LLMChain(Chain):
         run_manager: Optional[AsyncCallbackManagerForChainRun] = None,
     ) -> Tuple[List[PromptValue], Optional[List[str]]]:
         """Prepare prompts from inputs."""
-        stop = None
-        if "stop" in input_list[0]:
-            stop = input_list[0]["stop"]
+        stop = input_list[0]["stop"] if "stop" in input_list[0] else None
         prompts = []
         for inputs in input_list:
             selected_inputs = {k: inputs[k] for k in self.prompt.input_variables}

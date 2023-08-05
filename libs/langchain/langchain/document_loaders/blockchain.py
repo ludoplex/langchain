@@ -149,9 +149,9 @@ class BlockchainDocumentLoader(BaseLoader):
         result = value_int + 1
 
         if value_type == "hex_0x":
-            return "0x" + format(result, "0" + str(len(tokenId) - 2) + "x")
+            return f'0x{format(result, f"0{str(len(tokenId) - 2)}x")}'
         elif value_type == "hex_0xbf":
-            return "0xbf" + format(result, "0" + str(len(tokenId) - 4) + "x")
+            return f'0xbf{format(result, f"0{str(len(tokenId) - 4)}x")}'
         else:
             return str(result)
 
@@ -162,7 +162,5 @@ class BlockchainDocumentLoader(BaseLoader):
             return "int"
         elif tokenId.startswith("0x"):
             return "hex_0x"
-        elif tokenId.startswith("0xbf"):
-            return "hex_0xbf"
         else:
             return "hex_0xbf"

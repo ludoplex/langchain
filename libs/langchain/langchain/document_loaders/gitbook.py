@@ -35,11 +35,7 @@ class GitbookLoader(WebBaseLoader):
         self.base_url = base_url or web_page
         if self.base_url.endswith("/"):
             self.base_url = self.base_url[:-1]
-        if load_all_paths:
-            # set web_path to the sitemap if we want to crawl all paths
-            web_paths = f"{self.base_url}/sitemap.xml"
-        else:
-            web_paths = web_page
+        web_paths = f"{self.base_url}/sitemap.xml" if load_all_paths else web_page
         super().__init__(web_paths)
         self.load_all_paths = load_all_paths
         self.content_selector = content_selector
@@ -58,9 +54,7 @@ class GitbookLoader(WebBaseLoader):
         else:
             soup_info = self.scrape()
             _documents = [self._get_document(soup_info, self.web_path)]
-        documents = [d for d in _documents if d]
-
-        return documents
+        return [d for d in _documents if d]
 
     def _get_document(
         self, soup: Any, custom_url: Optional[str] = None

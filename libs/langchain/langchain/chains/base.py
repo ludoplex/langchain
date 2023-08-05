@@ -125,10 +125,7 @@ class Chain(Serializable, Runnable[Dict[str, Any], Dict[str, Any]], ABC):
 
         Defaults to the global setting if not specified by the user.
         """
-        if verbose is None:
-            return _get_verbosity()
-        else:
-            return verbose
+        return _get_verbosity() if verbose is None else verbose
 
     @property
     @abstractmethod
@@ -142,13 +139,11 @@ class Chain(Serializable, Runnable[Dict[str, Any], Dict[str, Any]], ABC):
 
     def _validate_inputs(self, inputs: Dict[str, Any]) -> None:
         """Check that all inputs are present."""
-        missing_keys = set(self.input_keys).difference(inputs)
-        if missing_keys:
+        if missing_keys := set(self.input_keys).difference(inputs):
             raise ValueError(f"Missing some input keys: {missing_keys}")
 
     def _validate_outputs(self, outputs: Dict[str, Any]) -> None:
-        missing_keys = set(self.output_keys).difference(outputs)
-        if missing_keys:
+        if missing_keys := set(self.output_keys).difference(outputs):
             raise ValueError(f"Missing some output keys: {missing_keys}")
 
     @abstractmethod
@@ -352,10 +347,7 @@ class Chain(Serializable, Runnable[Dict[str, Any], Dict[str, Any]], ABC):
         self._validate_outputs(outputs)
         if self.memory is not None:
             self.memory.save_context(inputs, outputs)
-        if return_only_outputs:
-            return outputs
-        else:
-            return {**inputs, **outputs}
+        return outputs if return_only_outputs else inputs | outputs
 
     def prep_inputs(self, inputs: Union[Dict[str, Any], Any]) -> Dict[str, str]:
         """Validate and prepare chain inputs, including adding inputs from memory.
@@ -457,15 +449,16 @@ class Chain(Serializable, Runnable[Dict[str, Any], Dict[str, Any]], ABC):
                 _output_key
             ]
 
-        if not kwargs and not args:
-            raise ValueError(
-                "`run` supported with either positional arguments or keyword arguments,"
-                " but none were provided."
-            )
-        else:
+        if kwargs or args:
             raise ValueError(
                 f"`run` supported with either positional arguments or keyword arguments"
                 f" but not both. Got args: {args} and kwargs: {kwargs}."
+            )
+
+        else:
+            raise ValueError(
+                "`run` supported with either positional arguments or keyword arguments,"
+                " but none were provided."
             )
 
     async def arun(
@@ -579,11 +572,7 @@ class Chain(Serializable, Runnable[Dict[str, Any], Dict[str, Any]], ABC):
                 chain.save(file_path="path/chain.yaml")
         """
         # Convert file to Path object.
-        if isinstance(file_path, str):
-            save_path = Path(file_path)
-        else:
-            save_path = file_path
-
+        save_path = Path(file_path) if isinstance(file_path, str) else file_path
         directory_path = save_path.parent
         directory_path.mkdir(parents=True, exist_ok=True)
 

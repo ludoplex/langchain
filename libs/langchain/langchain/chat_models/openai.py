@@ -258,8 +258,9 @@ class ChatOpenAI(BaseChatModel):
                 )
                 extra[field_name] = values.pop(field_name)
 
-        invalid_model_kwargs = all_required_field_names.intersection(extra.keys())
-        if invalid_model_kwargs:
+        if invalid_model_kwargs := all_required_field_names.intersection(
+            extra.keys()
+        ):
             raise ValueError(
                 f"Parameters {invalid_model_kwargs} should be specified explicitly. "
                 f"Instead they were passed in as part of `model_kwargs` parameter."

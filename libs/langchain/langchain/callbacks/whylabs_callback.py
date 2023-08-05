@@ -98,7 +98,7 @@ class WhyLabsCallbackHandler(BaseCallbackHandler):
         if hasattr(handler, "_get_callbacks"):
             self._callbacks = handler._get_callbacks()
         else:
-            self._callbacks = dict()
+            self._callbacks = {}
             diagnostic_logger.warning("initialized handler without callbacks.")
         self._logger = logger
 

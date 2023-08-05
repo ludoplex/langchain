@@ -44,8 +44,7 @@ class BaseTracer(BaseCallbackHandler, ABC):
     def _start_trace(self, run: Run) -> None:
         """Start a trace for a run."""
         if run.parent_run_id:
-            parent_run = self.run_map[str(run.parent_run_id)]
-            if parent_run:
+            if parent_run := self.run_map[str(run.parent_run_id)]:
                 self._add_child_run(parent_run, run)
             else:
                 logger.debug(f"Parent run with UUID {run.parent_run_id} not found.")
@@ -99,7 +98,7 @@ class BaseTracer(BaseCallbackHandler, ABC):
         execution_order = self._get_execution_order(parent_run_id_)
         start_time = datetime.utcnow()
         if metadata:
-            kwargs.update({"metadata": metadata})
+            kwargs["metadata"] = metadata
         llm_run = Run(
             id=run_id,
             parent_run_id=parent_run_id,
@@ -235,7 +234,7 @@ class BaseTracer(BaseCallbackHandler, ABC):
         execution_order = self._get_execution_order(parent_run_id_)
         start_time = datetime.utcnow()
         if metadata:
-            kwargs.update({"metadata": metadata})
+            kwargs["metadata"] = metadata
         chain_run = Run(
             id=run_id,
             parent_run_id=parent_run_id,
@@ -305,7 +304,7 @@ class BaseTracer(BaseCallbackHandler, ABC):
         execution_order = self._get_execution_order(parent_run_id_)
         start_time = datetime.utcnow()
         if metadata:
-            kwargs.update({"metadata": metadata})
+            kwargs["metadata"] = metadata
         tool_run = Run(
             id=run_id,
             parent_run_id=parent_run_id,
@@ -373,7 +372,7 @@ class BaseTracer(BaseCallbackHandler, ABC):
         execution_order = self._get_execution_order(parent_run_id_)
         start_time = datetime.utcnow()
         if metadata:
-            kwargs.update({"metadata": metadata})
+            kwargs["metadata"] = metadata
         retrieval_run = Run(
             id=run_id,
             name="Retriever",

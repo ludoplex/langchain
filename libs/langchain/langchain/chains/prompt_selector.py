@@ -36,10 +36,10 @@ class ConditionalPromptSelector(BasePromptSelector):
         Returns:
             Prompt to use for the language model.
         """
-        for condition, prompt in self.conditionals:
-            if condition(llm):
-                return prompt
-        return self.default_prompt
+        return next(
+            (prompt for condition, prompt in self.conditionals if condition(llm)),
+            self.default_prompt,
+        )
 
 
 def is_llm(llm: BaseLanguageModel) -> bool:

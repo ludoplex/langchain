@@ -75,15 +75,11 @@ class XMLAgent(BaseSingleActionAgent):
         callbacks: Callbacks = None,
         **kwargs: Any,
     ) -> Union[AgentAction, AgentFinish]:
-        log = ""
-        for action, observation in intermediate_steps:
-            log += (
-                f"<tool>{action.tool}</tool><tool_input>{action.tool_input}"
-                f"</tool_input><observation>{observation}</observation>"
-            )
-        tools = ""
-        for tool in self.tools:
-            tools += f"{tool.name}: {tool.description}\n"
+        log = "".join(
+            f"<tool>{action.tool}</tool><tool_input>{action.tool_input}</tool_input><observation>{observation}</observation>"
+            for action, observation in intermediate_steps
+        )
+        tools = "".join(f"{tool.name}: {tool.description}\n" for tool in self.tools)
         inputs = {
             "intermediate_steps": log,
             "tools": tools,
@@ -99,15 +95,11 @@ class XMLAgent(BaseSingleActionAgent):
         callbacks: Callbacks = None,
         **kwargs: Any,
     ) -> Union[AgentAction, AgentFinish]:
-        log = ""
-        for action, observation in intermediate_steps:
-            log += (
-                f"<tool>{action.tool}</tool><tool_input>{action.tool_input}"
-                f"</tool_input><observation>{observation}</observation>"
-            )
-        tools = ""
-        for tool in self.tools:
-            tools += f"{tool.name}: {tool.description}\n"
+        log = "".join(
+            f"<tool>{action.tool}</tool><tool_input>{action.tool_input}</tool_input><observation>{observation}</observation>"
+            for action, observation in intermediate_steps
+        )
+        tools = "".join(f"{tool.name}: {tool.description}\n" for tool in self.tools)
         inputs = {
             "intermediate_steps": log,
             "tools": tools,

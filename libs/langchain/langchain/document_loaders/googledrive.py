@@ -79,7 +79,7 @@ class GoogleDriveLoader(BaseLoader, BaseModel):
                 "pdf": "application/pdf",
             }
             allowed_types = list(type_mapping.keys()) + list(type_mapping.values())
-            short_names = ", ".join([f"'{x}'" for x in type_mapping.keys()])
+            short_names = ", ".join([f"'{x}'" for x in type_mapping])
             full_names = ", ".join([f"'{x}'" for x in type_mapping.values()])
             for file_type in file_types:
                 if file_type not in allowed_types:
@@ -207,14 +207,14 @@ class GoogleDriveLoader(BaseLoader, BaseModel):
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         try:
-            while done is False:
+            while not done:
                 status, done = downloader.next_chunk()
 
         except HttpError as e:
             if e.resp.status == 404:
-                print("File not found: {}".format(id))
+                print(f"File not found: {id}")
             else:
-                print("An error occurred: {}".format(e))
+                print(f"An error occurred: {e}")
 
         text = fh.getvalue().decode("utf-8")
         metadata = {
@@ -251,8 +251,6 @@ class GoogleDriveLoader(BaseLoader, BaseModel):
                 or self.file_loader_cls is not None
             ):
                 returns.extend(self._load_file_from_id(file["id"]))  # type: ignore
-            else:
-                pass
         return returns
 
     def _fetch_files_recursive(
@@ -303,7 +301,7 @@ class GoogleDriveLoader(BaseLoader, BaseModel):
         fh = BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
         done = False
-        while done is False:
+        while not done:
             status, done = downloader.next_chunk()
 
         if self.file_loader_cls is not None:

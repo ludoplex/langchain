@@ -30,5 +30,4 @@ class ArxivLoader(BaseLoader):
             load_max_docs=self.load_max_docs,
             load_all_available_meta=self.load_all_available_meta,
         )
-        docs = arxiv_client.load(self.query)
-        return docs
+        return arxiv_client.load(self.query)

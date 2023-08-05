@@ -111,9 +111,7 @@ class QueryTransformer(Transformer):
         return True
 
     def list(self, item: Any) -> list:
-        if item is None:
-            return []
-        return list(item)
+        return [] if item is None else list(item)
 
     def int(self, item: Any) -> int:
         return int(item)

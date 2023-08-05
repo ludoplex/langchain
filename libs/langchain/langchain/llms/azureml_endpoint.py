@@ -35,15 +35,14 @@ class AzureMLEndpointClient(object):
         # endpoint traffic rules.
         headers = {
             "Content-Type": "application/json",
-            "Authorization": ("Bearer " + self.endpoint_api_key),
+            "Authorization": f"Bearer {self.endpoint_api_key}",
         }
         if self.deployment_name != "":
             headers["azureml-model-deployment"] = self.deployment_name
 
         req = urllib.request.Request(self.endpoint_url, body, headers)
         response = urllib.request.urlopen(req, timeout=kwargs.get("timeout", 50))
-        result = response.read()
-        return result
+        return response.read()
 
 
 class ContentFormatterBase:
@@ -246,8 +245,7 @@ class AzureMLOnlineEndpoint(LLM, BaseModel):
         deployment_name = get_from_dict_or_env(
             values, "deployment_name", "AZUREML_DEPLOYMENT_NAME", ""
         )
-        http_client = AzureMLEndpointClient(endpoint_url, endpoint_key, deployment_name)
-        return http_client
+        return AzureMLEndpointClient(endpoint_url, endpoint_key, deployment_name)
 
     @property
     def _identifying_params(self) -> Mapping[str, Any]:
@@ -286,7 +284,4 @@ class AzureMLOnlineEndpoint(LLM, BaseModel):
             prompt, _model_kwargs
         )
         response_payload = self.http_client.call(request_payload, **kwargs)
-        generated_text = self.content_formatter.format_response_payload(
-            response_payload
-        )
-        return generated_text
+        return self.content_formatter.format_response_payload(response_payload)

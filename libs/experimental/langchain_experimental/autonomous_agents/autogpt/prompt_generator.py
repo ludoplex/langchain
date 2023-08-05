@@ -80,25 +80,24 @@ class PromptGenerator:
         Returns:
             str: The formatted numbered list.
         """
-        if item_type == "command":
-            command_strings = [
-                f"{i + 1}. {self._generate_command_string(item)}"
-                for i, item in enumerate(items)
-            ]
-            finish_description = (
-                "use this to signal that you have finished all your objectives"
-            )
-            finish_args = (
-                '"response": "final response to let '
-                'people know you have finished your objectives"'
-            )
-            finish_string = (
-                f"{len(items) + 1}. {FINISH_NAME}: "
-                f"{finish_description}, args: {finish_args}"
-            )
-            return "\n".join(command_strings + [finish_string])
-        else:
+        if item_type != "command":
             return "\n".join(f"{i+1}. {item}" for i, item in enumerate(items))
+        command_strings = [
+            f"{i + 1}. {self._generate_command_string(item)}"
+            for i, item in enumerate(items)
+        ]
+        finish_description = (
+            "use this to signal that you have finished all your objectives"
+        )
+        finish_args = (
+            '"response": "final response to let '
+            'people know you have finished your objectives"'
+        )
+        finish_string = (
+            f"{len(items) + 1}. {FINISH_NAME}: "
+            f"{finish_description}, args: {finish_args}"
+        )
+        return "\n".join(command_strings + [finish_string])
 
     def generate_prompt_string(self) -> str:
         """Generate a prompt string.
@@ -107,19 +106,7 @@ class PromptGenerator:
             str: The generated prompt string.
         """
         formatted_response_format = json.dumps(self.response_format, indent=4)
-        prompt_string = (
-            f"Constraints:\n{self._generate_numbered_list(self.constraints)}\n\n"
-            f"Commands:\n"
-            f"{self._generate_numbered_list(self.commands, item_type='command')}\n\n"
-            f"Resources:\n{self._generate_numbered_list(self.resources)}\n\n"
-            f"Performance Evaluation:\n"
-            f"{self._generate_numbered_list(self.performance_evaluation)}\n\n"
-            f"You should only respond in JSON format as described below "
-            f"\nResponse Format: \n{formatted_response_format} "
-            f"\nEnsure the response can be parsed by Python json.loads"
-        )
-
-        return prompt_string
+        return f"Constraints:\n{self._generate_numbered_list(self.constraints)}\n\nCommands:\n{self._generate_numbered_list(self.commands, item_type='command')}\n\nResources:\n{self._generate_numbered_list(self.resources)}\n\nPerformance Evaluation:\n{self._generate_numbered_list(self.performance_evaluation)}\n\nYou should only respond in JSON format as described below \nResponse Format: \n{formatted_response_format} \nEnsure the response can be parsed by Python json.loads"
 
 
 def get_prompt(tools: List[BaseTool]) -> str:
@@ -180,7 +167,4 @@ def get_prompt(tools: List[BaseTool]) -> str:
         "Aim to complete tasks in the least number of steps."
     )
 
-    # Generate the prompt string
-    prompt_string = prompt_generator.generate_prompt_string()
-
-    return prompt_string
+    return prompt_generator.generate_prompt_string()

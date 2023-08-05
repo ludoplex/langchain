@@ -130,8 +130,5 @@ class DatadogLogsLoader(BaseLoader):
             api_instance = LogsApi(api_client)
             response = api_instance.list_logs(body=body).to_dict()
 
-        docs: List[Document] = []
-        for row in response["data"]:
-            docs.append(self.parse_log(row))
-
+        docs: List[Document] = [self.parse_log(row) for row in response["data"]]
         return docs

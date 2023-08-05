@@ -137,8 +137,7 @@ class DashScopeEmbeddings(BaseModel, Embeddings):
         embeddings = embed_with_retry(
             self, input=texts, text_type="document", model=self.model
         )
-        embedding_list = [item["embedding"] for item in embeddings]
-        return embedding_list
+        return [item["embedding"] for item in embeddings]
 
     def embed_query(self, text: str) -> List[float]:
         """Call out to DashScope's embedding endpoint for embedding query text.
@@ -149,7 +148,6 @@ class DashScopeEmbeddings(BaseModel, Embeddings):
         Returns:
             Embedding for the text.
         """
-        embedding = embed_with_retry(
+        return embed_with_retry(
             self, input=text, text_type="query", model=self.model
         )[0]["embedding"]
-        return embedding

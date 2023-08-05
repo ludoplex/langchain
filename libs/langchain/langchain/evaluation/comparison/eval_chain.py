@@ -71,14 +71,14 @@ def resolve_pairwise_criteria(
             for criterion in criteria
             for k, v in resolve_pairwise_criteria(criterion).items()
         }
-    else:
-        if not criteria:
-            raise ValueError(
-                "Criteria cannot be empty. "
-                "Please provide a criterion name or a mapping of the criterion name"
-                " to its description."
-            )
+    elif criteria:
         criteria_ = dict(criteria)
+    else:
+        raise ValueError(
+            "Criteria cannot be empty. "
+            "Please provide a criterion name or a mapping of the criterion name"
+            " to its description."
+        )
     return criteria_
 
 

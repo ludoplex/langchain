@@ -78,7 +78,7 @@ author = "Harrison Chase"
 version = data["tool"]["poetry"]["version"]
 release = version
 
-html_title = project + " " + version
+html_title = f"{project} {version}"
 html_last_updated_fmt = "%b %d, %Y"
 
 
@@ -137,14 +137,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "scikit-learn-modern"
 html_theme_path = ["themes"]
 
-# redirects dictionary maps from old links to new links
-html_additional_pages = {}
 redirects = {
     "index": "api_reference",
 }
-for old_link in redirects:
-    html_additional_pages[old_link] = "redirects.html"
-
+html_additional_pages = {old_link: "redirects.html" for old_link in redirects}
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_user": "hwchase17",  # Username

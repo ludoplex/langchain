@@ -44,7 +44,7 @@ class JinaEmbeddings(BaseModel, Embeddings):
         model_name = values["model_name"]
         try:
             resp = requests.get(
-                jina_api_url + f"?model_name={model_name}",
+                f"{jina_api_url}?model_name={model_name}",
                 headers={"Authorization": jina_auth_token},
             )
 

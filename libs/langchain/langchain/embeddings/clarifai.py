@@ -131,11 +131,10 @@ class ClarifaiEmbeddings(BaseModel, Embeddings):
                 f"{post_model_outputs_response.status}, first output failure: "
                 f"{first_output_failure}"
             )
-        embeddings = [
+        return [
             list(o.data.embeddings[0].vector)
             for o in post_model_outputs_response.outputs
         ]
-        return embeddings
 
     def embed_query(self, text: str) -> List[float]:
         """Call out to Clarifai's embedding models.

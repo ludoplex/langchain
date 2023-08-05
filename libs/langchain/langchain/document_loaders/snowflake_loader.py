@@ -80,8 +80,8 @@ class SnowflakeLoader(BaseLoader):
         )
         try:
             cur = conn.cursor()
-            cur.execute("USE DATABASE " + self.database)
-            cur.execute("USE SCHEMA " + self.schema)
+            cur.execute(f"USE DATABASE {self.database}")
+            cur.execute(f"USE SCHEMA {self.schema}")
             cur.execute(self.query, self.parameters)
             query_result = cur.fetchall()
             column_names = [column[0] for column in cur.description]
@@ -119,8 +119,7 @@ class SnowflakeLoader(BaseLoader):
                 f"{k}: {v}" for k, v in row.items() if k in page_content_columns
             )
             metadata = {k: v for k, v in row.items() if k in metadata_columns}
-            doc = Document(page_content=page_content, metadata=metadata)
-            yield doc
+            yield Document(page_content=page_content, metadata=metadata)
 
     def load(self) -> List[Document]:
         """Load data into document objects."""

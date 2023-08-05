@@ -131,9 +131,7 @@ class MiniMaxEmbeddings(BaseModel, Embeddings):
                 f"MiniMax API returned an error: {parsed_response['base_resp']}"
             )
 
-        embeddings = parsed_response["vectors"]
-
-        return embeddings
+        return parsed_response["vectors"]
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """Embed documents using a MiniMax embedding endpoint.
@@ -144,8 +142,7 @@ class MiniMaxEmbeddings(BaseModel, Embeddings):
         Returns:
             List of embeddings, one for each text.
         """
-        embeddings = embed_with_retry(self, texts=texts, embed_type=self.embed_type_db)
-        return embeddings
+        return embed_with_retry(self, texts=texts, embed_type=self.embed_type_db)
 
     def embed_query(self, text: str) -> List[float]:
         """Embed a query using a MiniMax embedding endpoint.

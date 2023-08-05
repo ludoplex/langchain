@@ -116,7 +116,7 @@ class SeleniumURLLoader(BaseLoader):
         """
         from unstructured.partition.html import partition_html
 
-        docs: List[Document] = list()
+        docs: List[Document] = []
         driver = self._get_driver()
 
         for url in self.urls:

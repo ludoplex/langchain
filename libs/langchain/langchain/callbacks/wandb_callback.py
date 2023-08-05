@@ -85,7 +85,7 @@ def analyze_text(
             "gulpease_index": textstat.gulpease_index(text),
             "osman": textstat.osman(text),
         }
-        resp.update(text_complexity_metrics)
+        resp |= text_complexity_metrics
 
     if visualize and nlp and output_dir is not None:
         doc = nlp(text)
@@ -93,20 +93,20 @@ def analyze_text(
         dep_out = spacy.displacy.render(  # type: ignore
             doc, style="dep", jupyter=False, page=True
         )
-        dep_output_path = Path(output_dir, hash_string(f"dep-{text}") + ".html")
+        dep_output_path = Path(output_dir, f'{hash_string(f"dep-{text}")}.html')
         dep_output_path.open("w", encoding="utf-8").write(dep_out)
 
         ent_out = spacy.displacy.render(  # type: ignore
             doc, style="ent", jupyter=False, page=True
         )
-        ent_output_path = Path(output_dir, hash_string(f"ent-{text}") + ".html")
+        ent_output_path = Path(output_dir, f'{hash_string(f"ent-{text}")}.html')
         ent_output_path.open("w", encoding="utf-8").write(ent_out)
 
         text_visualizations = {
             "dependency_tree": wandb.Html(str(dep_output_path)),
             "entities": wandb.Html(str(ent_output_path)),
         }
-        resp.update(text_visualizations)
+        resp |= text_visualizations
 
     return resp
 
@@ -568,7 +568,6 @@ class WandbCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
             except NotImplementedError as e:
                 print("Could not save model.")
                 print(repr(e))
-                pass
             self.run.log_artifact(model_artifact)
 
         if finish or reset:

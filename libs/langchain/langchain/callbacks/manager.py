@@ -336,13 +336,12 @@ async def _ahandle_event_for_handler(
             event = getattr(handler, event_name)
             if asyncio.iscoroutinefunction(event):
                 await event(*args, **kwargs)
+            elif handler.run_inline:
+                event(*args, **kwargs)
             else:
-                if handler.run_inline:
-                    event(*args, **kwargs)
-                else:
-                    await asyncio.get_event_loop().run_in_executor(
-                        None, functools.partial(event, *args, **kwargs)
-                    )
+                await asyncio.get_event_loop().run_in_executor(
+                    None, functools.partial(event, *args, **kwargs)
+                )
     except NotImplementedError as e:
         if event_name == "on_chat_model_start":
             message_strings = [get_buffer_string(m) for m in args[1]]
@@ -1700,65 +1699,55 @@ def _configure(
         "LANGCHAIN_PROJECT", os.environ.get("LANGCHAIN_SESSION", "default")
     )
     debug = _get_debug()
-    if (
-        verbose
-        or debug
-        or tracing_enabled_
-        or tracing_v2_enabled_
-        or wandb_tracing_enabled_
-        or open_ai is not None
-    ):
-        if verbose and not any(
+    if verbose and not any(
             isinstance(handler, StdOutCallbackHandler)
             for handler in callback_manager.handlers
         ):
-            if debug:
-                pass
-            else:
-                callback_manager.add_handler(StdOutCallbackHandler(), False)
-        if debug and not any(
-            isinstance(handler, ConsoleCallbackHandler)
-            for handler in callback_manager.handlers
-        ):
-            callback_manager.add_handler(ConsoleCallbackHandler(), True)
-        if tracing_enabled_ and not any(
-            isinstance(handler, LangChainTracerV1)
-            for handler in callback_manager.handlers
-        ):
-            if tracer:
-                callback_manager.add_handler(tracer, True)
-            else:
-                handler = LangChainTracerV1()
-                handler.load_session(tracer_project)
+        if not debug:
+            callback_manager.add_handler(StdOutCallbackHandler(), False)
+    if debug and not any(
+        isinstance(handler, ConsoleCallbackHandler)
+        for handler in callback_manager.handlers
+    ):
+        callback_manager.add_handler(ConsoleCallbackHandler(), True)
+    if tracing_enabled_ and not any(
+        isinstance(handler, LangChainTracerV1)
+        for handler in callback_manager.handlers
+    ):
+        if tracer:
+            callback_manager.add_handler(tracer, True)
+        else:
+            handler = LangChainTracerV1()
+            handler.load_session(tracer_project)
+            callback_manager.add_handler(handler, True)
+    if wandb_tracing_enabled_ and not any(
+        isinstance(handler, WandbTracer) for handler in callback_manager.handlers
+    ):
+        if wandb_tracer:
+            callback_manager.add_handler(wandb_tracer, True)
+        else:
+            handler = WandbTracer()
+            callback_manager.add_handler(handler, True)
+    if tracing_v2_enabled_ and not any(
+        isinstance(handler, LangChainTracer)
+        for handler in callback_manager.handlers
+    ):
+        if tracer_v2:
+            callback_manager.add_handler(tracer_v2, True)
+        else:
+            try:
+                handler = LangChainTracer(project_name=tracer_project)
                 callback_manager.add_handler(handler, True)
-        if wandb_tracing_enabled_ and not any(
-            isinstance(handler, WandbTracer) for handler in callback_manager.handlers
-        ):
-            if wandb_tracer:
-                callback_manager.add_handler(wandb_tracer, True)
-            else:
-                handler = WandbTracer()
-                callback_manager.add_handler(handler, True)
-        if tracing_v2_enabled_ and not any(
-            isinstance(handler, LangChainTracer)
-            for handler in callback_manager.handlers
-        ):
-            if tracer_v2:
-                callback_manager.add_handler(tracer_v2, True)
-            else:
-                try:
-                    handler = LangChainTracer(project_name=tracer_project)
-                    callback_manager.add_handler(handler, True)
-                except Exception as e:
-                    logger.warning(
-                        "Unable to load requested LangChainTracer."
-                        " To disable this warning,"
-                        " unset the  LANGCHAIN_TRACING_V2 environment variables.",
-                        e,
-                    )
-        if open_ai is not None and not any(
-            isinstance(handler, OpenAICallbackHandler)
-            for handler in callback_manager.handlers
-        ):
-            callback_manager.add_handler(open_ai, True)
+            except Exception as e:
+                logger.warning(
+                    "Unable to load requested LangChainTracer."
+                    " To disable this warning,"
+                    " unset the  LANGCHAIN_TRACING_V2 environment variables.",
+                    e,
+                )
+    if open_ai is not None and not any(
+        isinstance(handler, OpenAICallbackHandler)
+        for handler in callback_manager.handlers
+    ):
+        callback_manager.add_handler(open_ai, True)
     return callback_manager

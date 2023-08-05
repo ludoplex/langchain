@@ -135,11 +135,10 @@ class AI21(LLM):
             stop = []
         if self.base_url is not None:
             base_url = self.base_url
+        elif self.model in ("j1-grande-instruct",):
+            base_url = "https://api.ai21.com/studio/v1/experimental"
         else:
-            if self.model in ("j1-grande-instruct",):
-                base_url = "https://api.ai21.com/studio/v1/experimental"
-            else:
-                base_url = "https://api.ai21.com/studio/v1"
+            base_url = "https://api.ai21.com/studio/v1"
         params = {**self._default_params, **kwargs}
         response = requests.post(
             url=f"{base_url}/{self.model}/complete",

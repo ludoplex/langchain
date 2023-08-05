@@ -57,8 +57,7 @@ class FunctionCallbackHandler(BaseTracer):
         parents = []
         current_run = run
         while current_run.parent_run_id:
-            parent = self.run_map.get(str(current_run.parent_run_id))
-            if parent:
+            if parent := self.run_map.get(str(current_run.parent_run_id)):
                 parents.append(parent)
                 current_run = parent
             else:
@@ -67,13 +66,12 @@ class FunctionCallbackHandler(BaseTracer):
 
     def get_breadcrumbs(self, run: Run) -> str:
         parents = self.get_parents(run)[::-1]
-        string = " > ".join(
+        return " > ".join(
             f"{parent.execution_order}:{parent.run_type}:{parent.name}"
             if i != len(parents) - 1
             else f"{parent.execution_order}:{parent.run_type}:{parent.name}"
             for i, parent in enumerate(parents + [run])
         )
-        return string
 
     # logging methods
     def _on_chain_start(self, run: Run) -> None:

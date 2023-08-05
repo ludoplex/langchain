@@ -65,9 +65,7 @@ def main():
 
     for file in find_files(args.docs_dir):
         print(f"Adding links for imports in {file}")
-        file_imports = replace_imports(file)
-
-        if file_imports:
+        if file_imports := replace_imports(file):
             # Use relative file path as key
             relative_path = (
                 os.path.relpath(file, _DOCS_DIR).replace(".mdx", "").replace(".md", "")

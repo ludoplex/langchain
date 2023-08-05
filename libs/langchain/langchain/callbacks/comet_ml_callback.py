@@ -35,23 +35,25 @@ def _get_experiment(
 ) -> Any:
     comet_ml = import_comet_ml()
 
-    experiment = comet_ml.Experiment(  # type: ignore
+    return comet_ml.Experiment(  # type: ignore
         workspace=workspace,
         project_name=project_name,
     )
 
-    return experiment
-
 
 def _fetch_text_complexity_metrics(text: str) -> dict:
     textstat = import_textstat()
-    text_complexity_metrics = {
+    return {
         "flesch_reading_ease": textstat.flesch_reading_ease(text),
         "flesch_kincaid_grade": textstat.flesch_kincaid_grade(text),
         "smog_index": textstat.smog_index(text),
         "coleman_liau_index": textstat.coleman_liau_index(text),
-        "automated_readability_index": textstat.automated_readability_index(text),
-        "dale_chall_readability_score": textstat.dale_chall_readability_score(text),
+        "automated_readability_index": textstat.automated_readability_index(
+            text
+        ),
+        "dale_chall_readability_score": textstat.dale_chall_readability_score(
+            text
+        ),
         "difficult_words": textstat.difficult_words(text),
         "linsear_write_formula": textstat.linsear_write_formula(text),
         "gunning_fog": textstat.gunning_fog(text),
@@ -63,7 +65,6 @@ def _fetch_text_complexity_metrics(text: str) -> dict:
         "gulpease_index": textstat.gulpease_index(text),
         "osman": textstat.osman(text),
     }
-    return text_complexity_metrics
 
 
 def _summarize_metrics_for_generated_outputs(metrics: Sequence) -> dict:
@@ -202,15 +203,13 @@ class CometCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 generation_resp = deepcopy(metadata)
                 generation_resp.update(flatten_dict(generation.dict()))
 
-                complexity_metrics = self._get_complexity_metrics(text)
-                if complexity_metrics:
+                if complexity_metrics := self._get_complexity_metrics(text):
                     output_complexity_metrics.append(complexity_metrics)
                     generation_resp.update(complexity_metrics)
 
-                custom_metrics = self._get_custom_metrics(
+                if custom_metrics := self._get_custom_metrics(
                     generation, prompt_idx, gen_idx
-                )
-                if custom_metrics:
+                ):
                     output_custom_metrics.append(custom_metrics)
                     generation_resp.update(custom_metrics)
 
@@ -392,7 +391,7 @@ class CometCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         resp = {}
         if self.complexity_metrics:
             text_complexity_metrics = _fetch_text_complexity_metrics(text)
-            resp.update(text_complexity_metrics)
+            resp |= text_complexity_metrics
 
         return resp
 
@@ -413,7 +412,7 @@ class CometCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         resp = {}
         if self.custom_metrics:
             custom_metrics = self.custom_metrics(generation, prompt_idx, gen_idx)
-            resp.update(custom_metrics)
+            resp |= custom_metrics
 
         return resp
 
@@ -621,15 +620,13 @@ class CometCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
         ].reset_index(drop=True)
         llm_end_records_df = pd.DataFrame(self.on_llm_end_records)
 
-        llm_session_df = pd.merge(
+        return pd.merge(
             llm_start_records_df,
             llm_end_records_df,
             left_index=True,
             right_index=True,
             suffixes=["_llm_start", "_llm_end"],
         )
-
-        return llm_session_df
 
     def _get_llm_parameters(self, langchain_asset: Any = None) -> dict:
         if not langchain_asset:

@@ -66,20 +66,21 @@ class OpenAPIEndpointChain(Chain, BaseModel):
 
     def _extract_query_params(self, args: Dict[str, str]) -> Dict[str, str]:
         """Extract the query params from the deserialized input."""
-        query_params = {}
-        for param in self.param_mapping.query_params:
-            if param in args:
-                query_params[param] = args.pop(param)
-        return query_params
+        return {
+            param: args.pop(param)
+            for param in self.param_mapping.query_params
+            if param in args
+        }
 
     def _extract_body_params(self, args: Dict[str, str]) -> Optional[Dict[str, str]]:
         """Extract the request body params from the deserialized input."""
         body_params = None
         if self.param_mapping.body_params:
-            body_params = {}
-            for param in self.param_mapping.body_params:
-                if param in args:
-                    body_params[param] = args.pop(param)
+            body_params = {
+                param: args.pop(param)
+                for param in self.param_mapping.body_params
+                if param in args
+            }
         return body_params
 
     def deserialize_json_input(self, serialized_args: str) -> dict:
@@ -113,14 +114,13 @@ class OpenAPIEndpointChain(Chain, BaseModel):
         run_manager: Optional[CallbackManagerForChainRun] = None,
     ) -> Dict[str, str]:
         _run_manager = run_manager or CallbackManagerForChainRun.get_noop_manager()
-        intermediate_steps = {}
         instructions = inputs[self.instructions_key]
         instructions = instructions[: self.max_text_length]
         _api_arguments = self.api_request_chain.predict_and_parse(
             instructions=instructions, callbacks=_run_manager.get_child()
         )
         api_arguments = cast(str, _api_arguments)
-        intermediate_steps["request_args"] = api_arguments
+        intermediate_steps = {"request_args": api_arguments}
         _run_manager.on_text(
             api_arguments, color="green", end="\n", verbose=self.verbose
         )
@@ -150,17 +150,16 @@ class OpenAPIEndpointChain(Chain, BaseModel):
         _run_manager.on_text(
             response_text, color="blue", end="\n", verbose=self.verbose
         )
-        if self.api_response_chain is not None:
-            _answer = self.api_response_chain.predict_and_parse(
-                response=response_text,
-                instructions=instructions,
-                callbacks=_run_manager.get_child(),
-            )
-            answer = cast(str, _answer)
-            _run_manager.on_text(answer, color="yellow", end="\n", verbose=self.verbose)
-            return self._get_output(answer, intermediate_steps)
-        else:
+        if self.api_response_chain is None:
             return self._get_output(response_text, intermediate_steps)
+        _answer = self.api_response_chain.predict_and_parse(
+            response=response_text,
+            instructions=instructions,
+            callbacks=_run_manager.get_child(),
+        )
+        answer = cast(str, _answer)
+        _run_manager.on_text(answer, color="yellow", end="\n", verbose=self.verbose)
+        return self._get_output(answer, intermediate_steps)
 
     @classmethod
     def from_url_and_method(

@@ -69,9 +69,8 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         llm_starts = self.metrics["llm_starts"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_start"})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = {"action": "on_llm_start"}
+        resp |= flatten_dict(serialized)
         resp.update(self.metrics)
 
         for idx, prompt in enumerate(prompts):
@@ -90,9 +89,8 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         llm_streams = self.metrics["llm_streams"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_new_token", "token": token})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = dict({"action": "on_llm_new_token", "token": token})
+        resp |= self.metrics
 
         self.jsonf(resp, self.temp_dir, f"llm_new_tokens_{llm_streams}")
 
@@ -104,9 +102,8 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         llm_ends = self.metrics["llm_ends"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_llm_end"})
-        resp.update(flatten_dict(response.llm_output or {}))
+        resp: Dict[str, Any] = {"action": "on_llm_end"}
+        resp |= flatten_dict(response.llm_output or {})
 
         resp.update(self.metrics)
 
@@ -138,9 +135,8 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         chain_starts = self.metrics["chain_starts"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_chain_start"})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = {"action": "on_chain_start"}
+        resp |= flatten_dict(serialized)
         resp.update(self.metrics)
 
         chain_input = ",".join([f"{k}={v}" for k, v in inputs.items()])
@@ -157,10 +153,9 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         chain_ends = self.metrics["chain_ends"]
 
-        resp: Dict[str, Any] = {}
         chain_output = ",".join([f"{k}={v}" for k, v in outputs.items()])
-        resp.update({"action": "on_chain_end", "outputs": chain_output})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = {} | {"action": "on_chain_end", "outputs": chain_output}
+        resp |= self.metrics
 
         self.jsonf(resp, self.temp_dir, f"chain_end_{chain_ends}")
 
@@ -181,9 +176,10 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         tool_starts = self.metrics["tool_starts"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_tool_start", "input_str": input_str})
-        resp.update(flatten_dict(serialized))
+        resp: Dict[str, Any] = dict(
+            {"action": "on_tool_start", "input_str": input_str}
+        )
+        resp |= flatten_dict(serialized)
         resp.update(self.metrics)
 
         self.jsonf(resp, self.temp_dir, f"tool_start_{tool_starts}")
@@ -196,9 +192,8 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         tool_ends = self.metrics["tool_ends"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_tool_end", "output": output})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = dict({"action": "on_tool_end", "output": output})
+        resp |= self.metrics
 
         self.jsonf(resp, self.temp_dir, f"tool_end_{tool_ends}")
 
@@ -218,9 +213,8 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
 
         text_ctr = self.metrics["text_ctr"]
 
-        resp: Dict[str, Any] = {}
-        resp.update({"action": "on_text", "text": text})
-        resp.update(self.metrics)
+        resp: Dict[str, Any] = dict({"action": "on_text", "text": text})
+        resp |= self.metrics
 
         self.jsonf(resp, self.temp_dir, f"on_text_{text_ctr}")
 
@@ -231,15 +225,14 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
         self.metrics["ends"] += 1
 
         agent_ends = self.metrics["agent_ends"]
-        resp: Dict[str, Any] = {}
-        resp.update(
+        resp: Dict[str, Any] = dict(
             {
                 "action": "on_agent_finish",
                 "output": finish.return_values["output"],
                 "log": finish.log,
             }
         )
-        resp.update(self.metrics)
+        resp |= self.metrics
 
         self.jsonf(resp, self.temp_dir, f"agent_finish_{agent_ends}")
 
@@ -250,8 +243,7 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
         self.metrics["starts"] += 1
 
         tool_starts = self.metrics["tool_starts"]
-        resp: Dict[str, Any] = {}
-        resp.update(
+        resp: Dict[str, Any] = dict(
             {
                 "action": "on_agent_action",
                 "tool": action.tool,
@@ -259,7 +251,7 @@ class SageMakerCallbackHandler(BaseCallbackHandler):
                 "log": action.log,
             }
         )
-        resp.update(self.metrics)
+        resp |= self.metrics
         self.jsonf(resp, self.temp_dir, f"agent_action_{tool_starts}")
 
     def jsonf(

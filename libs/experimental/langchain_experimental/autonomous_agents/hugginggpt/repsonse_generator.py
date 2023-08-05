@@ -30,8 +30,7 @@ class ResponseGenerator:
 
     def generate(self, inputs: dict, callbacks: Callbacks = None, **kwargs: Any) -> str:
         """Given input, decided what to do."""
-        llm_response = self.llm_chain.run(**inputs, stop=self.stop, callbacks=callbacks)
-        return llm_response
+        return self.llm_chain.run(**inputs, stop=self.stop, callbacks=callbacks)
 
 
 def load_response_generator(llm: BaseLanguageModel) -> ResponseGenerator:

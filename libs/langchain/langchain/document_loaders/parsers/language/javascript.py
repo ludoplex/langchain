@@ -36,16 +36,17 @@ class JavaScriptSegmenter(CodeSegmenter):
         import esprima
 
         tree = esprima.parseScript(self.code, loc=True)
-        functions_classes = []
-
-        for node in tree.body:
+        return [
+            self._extract_code(node)
+            for node in tree.body
             if isinstance(
                 node,
-                (esprima.nodes.FunctionDeclaration, esprima.nodes.ClassDeclaration),
-            ):
-                functions_classes.append(self._extract_code(node))
-
-        return functions_classes
+                (
+                    esprima.nodes.FunctionDeclaration,
+                    esprima.nodes.ClassDeclaration,
+                ),
+            )
+        ]
 
     def simplify_code(self) -> str:
         import esprima

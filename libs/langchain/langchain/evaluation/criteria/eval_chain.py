@@ -124,11 +124,11 @@ def resolve_criteria(
             "helpfulness": _SUPPORTED_CRITERIA[Criteria.HELPFULNESS],
         }
     if isinstance(criteria, Criteria):
-        criteria_ = {criteria.value: _SUPPORTED_CRITERIA[criteria]}
+        return {criteria.value: _SUPPORTED_CRITERIA[criteria]}
     elif isinstance(criteria, str):
-        criteria_ = {criteria: _SUPPORTED_CRITERIA[Criteria(criteria)]}
+        return {criteria: _SUPPORTED_CRITERIA[Criteria(criteria)]}
     elif isinstance(criteria, ConstitutionalPrinciple):
-        criteria_ = {criteria.name: criteria.critique_request}
+        return {criteria.name: criteria.critique_request}
     else:
         if not criteria:
             raise ValueError(
@@ -136,8 +136,7 @@ def resolve_criteria(
                 "Please provide a criterion name or a mapping of the criterion name"
                 " to its description."
             )
-        criteria_ = dict(criteria)
-    return criteria_
+        return dict(criteria)
 
 
 class CriteriaEvalChain(StringEvaluator, LLMEvalChain, LLMChain):

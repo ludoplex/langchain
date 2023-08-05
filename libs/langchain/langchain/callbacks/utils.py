@@ -77,8 +77,7 @@ def flatten_dict(
         (dict): A flat dictionary.
 
     """
-    flat_dict = {k: v for k, v in _flatten_dict(nested_dict, parent_key, sep)}
-    return flat_dict
+    return dict(_flatten_dict(nested_dict, parent_key, sep))
 
 
 def hash_string(s: str) -> str:

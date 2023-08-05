@@ -146,7 +146,7 @@ class PALChain(Chain):
         _run_manager.on_text(code, color="green", end="\n", verbose=self.verbose)
         PALChain.validate_code(code, self.code_validations)
         repl = PythonREPL(_globals=self.python_globals, _locals=self.python_locals)
-        res = repl.run(code + f"\n{self.get_answer_expr}", timeout=self.timeout)
+        res = repl.run(f"{code}\n{self.get_answer_expr}", timeout=self.timeout)
         output = {self.output_key: res.strip()}
         if self.return_intermediate_steps:
             output["intermediate_steps"] = code
@@ -199,7 +199,7 @@ class PALChain(Chain):
                             == code_validations.solution_expression_name
                         ):
                             found_solution_expr = True
-            if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
                 has_imports = True
 
         if not found_solution_expr:
@@ -236,8 +236,8 @@ class PALChain(Chain):
                         f"{node.func.id} in code {code}"
                     )
 
-                if (not code_validations.allow_imports) and (
-                    isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom)
+                if not code_validations.allow_imports and (
+                    isinstance(node, (ast.Import, ast.ImportFrom))
                 ):
                     raise ValueError(f"Generated code has disallowed imports: {code}")
 

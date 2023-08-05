@@ -85,12 +85,13 @@ class DropboxLoader(BaseLoader, BaseModel):
             ) from ex
 
         files = [entry for entry in results.entries if isinstance(entry, FileMetadata)]
-        documents = [
+        return [
             doc
-            for doc in (self._load_file_from_path(file.path_display) for file in files)
+            for doc in (
+                self._load_file_from_path(file.path_display) for file in files
+            )
             if doc is not None
         ]
-        return documents
 
     def _load_file_from_path(self, file_path: str) -> Optional[Document]:
         """Load a file from a Dropbox path."""
@@ -135,8 +136,7 @@ class DropboxLoader(BaseLoader, BaseModel):
 
                 try:
                     loader = UnstructuredPDFLoader(str(temp_pdf))
-                    docs = loader.load()
-                    if docs:
+                    if docs := loader.load():
                         return docs[0]
                 except Exception as pdf_ex:
                     print(f"Error while trying to parse PDF {file_path}: {pdf_ex}")

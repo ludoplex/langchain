@@ -78,9 +78,10 @@ class ArangoGraph:
             doc: Dict[str, Any]
             properties: List[Dict[str, str]] = []
             for doc in self.__db.aql.execute(aql):
-                for key, value in doc.items():
-                    properties.append({"name": key, "type": type(value).__name__})
-
+                properties.extend(
+                    {"name": key, "type": type(value).__name__}
+                    for key, value in doc.items()
+                )
             collection_schema.append(
                 {
                     "collection_name": col_name,
@@ -99,7 +100,7 @@ class ArangoGraph:
         import itertools
 
         cursor = self.__db.aql.execute(query, **kwargs)
-        return [doc for doc in itertools.islice(cursor, top_k)]
+        return list(itertools.islice(cursor, top_k))
 
     @classmethod
     def from_db_credentials(

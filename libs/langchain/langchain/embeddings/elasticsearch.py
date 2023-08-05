@@ -192,8 +192,7 @@ class ElasticsearchEmbeddings(Embeddings):
             model_id=self.model_id, docs=[{self.input_field: text} for text in texts]
         )
 
-        embeddings = [doc["predicted_value"] for doc in response["inference_results"]]
-        return embeddings
+        return [doc["predicted_value"] for doc in response["inference_results"]]
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """

@@ -54,7 +54,7 @@ def load_dataset(uri: str) -> List[Dict]:
         )
 
     dataset = load_dataset(f"LangChainDatasets/{uri}")
-    return [d for d in dataset["train"]]
+    return list(dataset["train"])
 
 
 _EVALUATOR_MAP: Dict[EvaluatorType, Union[Type[LLMEvalChain], Type[Chain]]] = {

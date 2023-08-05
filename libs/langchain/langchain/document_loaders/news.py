@@ -97,12 +97,11 @@ class NewsURLLoader(BaseLoader):
                     article.nlp()
 
             except Exception as e:
-                if self.continue_on_failure:
-                    logger.error(f"Error fetching or processing {url}, exception: {e}")
-                    continue
-                else:
+                if not self.continue_on_failure:
                     raise e
 
+                logger.error(f"Error fetching or processing {url}, exception: {e}")
+                continue
             metadata = {
                 "title": getattr(article, "title", ""),
                 "link": getattr(article, "url", getattr(article, "canonical_link", "")),
@@ -112,11 +111,7 @@ class NewsURLLoader(BaseLoader):
                 "publish_date": getattr(article, "publish_date", ""),
             }
 
-            if self.text_mode:
-                content = article.text
-            else:
-                content = article.html
-
+            content = article.text if self.text_mode else article.html
             if self.nlp:
                 metadata["keywords"] = getattr(article, "keywords", [])
                 metadata["summary"] = getattr(article, "summary", "")

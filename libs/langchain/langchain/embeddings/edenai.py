@@ -56,13 +56,7 @@ class EdenAiEmbeddings(BaseModel, Embeddings):
 
         temp = response.json()
 
-        embeddings = []
-        for embed_item in temp[self.provider]["items"]:
-            embedding = embed_item["embedding"]
-
-            embeddings.append(embedding)
-
-        return embeddings
+        return [embed_item["embedding"] for embed_item in temp[self.provider]["items"]]
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """Embed a list of documents using EdenAI.

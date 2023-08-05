@@ -350,7 +350,7 @@ class ClearMLCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 "gulpease_index": textstat.gulpease_index(text),
                 "osman": textstat.osman(text),
             }
-            resp.update(text_complexity_metrics)
+            resp |= text_complexity_metrics
 
         if self.visualize and self.nlp and self.temp_dir.name is not None:
             doc = self.nlp(text)
@@ -359,7 +359,7 @@ class ClearMLCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 doc, style="dep", jupyter=False, page=True
             )
             dep_output_path = Path(
-                self.temp_dir.name, hash_string(f"dep-{text}") + ".html"
+                self.temp_dir.name, f'{hash_string(f"dep-{text}")}.html'
             )
             dep_output_path.open("w", encoding="utf-8").write(dep_out)
 
@@ -367,7 +367,7 @@ class ClearMLCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
                 doc, style="ent", jupyter=False, page=True
             )
             ent_output_path = Path(
-                self.temp_dir.name, hash_string(f"ent-{text}") + ".html"
+                self.temp_dir.name, f'{hash_string(f"ent-{text}")}.html'
             )
             ent_output_path.open("w", encoding="utf-8").write(ent_out)
 
@@ -427,16 +427,7 @@ class ClearMLCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
             .dropna(axis=1)
             .rename({"step": "output_step", "text": "output"}, axis=1)
         )
-        session_analysis_df = pd.concat([llm_input_prompts_df, llm_outputs_df], axis=1)
-        # session_analysis_df["chat_html"] = session_analysis_df[
-        #     ["prompts", "output"]
-        # ].apply(
-        #     lambda row: construct_html_from_prompt_and_generation(
-        #         row["prompts"], row["output"]
-        #     ),
-        #     axis=1,
-        # )
-        return session_analysis_df
+        return pd.concat([llm_input_prompts_df, llm_outputs_df], axis=1)
 
     def flush_tracker(
         self,
@@ -504,8 +495,6 @@ class ClearMLCallbackHandler(BaseMetadataCallbackHandler, BaseCallbackHandler):
             except NotImplementedError as e:
                 print("Could not save model.")
                 print(repr(e))
-                pass
-
         # Cleanup after adding everything to ClearML
         self.task.flush(wait_for_uploads=True)
         self.temp_dir.cleanup()

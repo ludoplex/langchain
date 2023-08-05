@@ -196,12 +196,11 @@ def _create_api_planner_tool(
         partial_variables={"endpoints": "- " + "- ".join(endpoint_descriptions)},
     )
     chain = LLMChain(llm=llm, prompt=prompt)
-    tool = Tool(
+    return Tool(
         name=API_PLANNER_TOOL_NAME,
         description=API_PLANNER_TOOL_DESCRIPTION,
         func=chain.run,
     )
-    return tool
 
 
 def _create_api_controller_agent(

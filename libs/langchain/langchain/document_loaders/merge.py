@@ -19,8 +19,7 @@ class MergedDataLoader(BaseLoader):
                 data = loader.lazy_load()
             except NotImplementedError:
                 data = loader.load()
-            for document in data:
-                yield document
+            yield from data
 
     def load(self) -> List[Document]:
         """Load docs."""

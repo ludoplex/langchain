@@ -69,8 +69,7 @@ class EtherscanLoader(BaseLoader):
             result = self.getERC1155Tx()
         else:
             raise ValueError(f"Invalid filter {filter}")
-        for doc in result:
-            yield doc
+        yield from result
 
     def load(self) -> List[Document]:
         """Load transactions from spcifc account by Etherscan."""

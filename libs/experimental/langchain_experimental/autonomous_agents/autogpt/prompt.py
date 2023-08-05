@@ -53,12 +53,12 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         relevant_docs = memory.get_relevant_documents(str(previous_messages[-10:]))
         relevant_memory = [d.page_content for d in relevant_docs]
         relevant_memory_tokens = sum(
-            [self.token_counter(doc) for doc in relevant_memory]
+            self.token_counter(doc) for doc in relevant_memory
         )
         while used_tokens + relevant_memory_tokens > 2500:
             relevant_memory = relevant_memory[:-1]
             relevant_memory_tokens = sum(
-                [self.token_counter(doc) for doc in relevant_memory]
+                self.token_counter(doc) for doc in relevant_memory
             )
         content_format = (
             f"This reminds you of these events "
